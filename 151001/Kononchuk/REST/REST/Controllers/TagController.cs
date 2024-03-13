@@ -60,16 +60,17 @@ public class TagController(ITagService tagService) : Controller
         return NotFound();
     }
 
-    [HttpDelete("{id:long}")]
-    [ProducesResponseType((int)HttpStatusCode.NoContent)]
-    [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult Delete(long id)
-    {
-        if (tagService.Delete(id))
-        {
-            return NoContent();
-        }
-
-        return NotFound();
-    }
+    // TODO update this for new logic
+    // [HttpDelete("{id:long}")]
+    // [ProducesResponseType((int)HttpStatusCode.NoContent)]
+    // [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    // public ActionResult Delete(long id)
+    // {
+    //     if (tagService.Delete(id))
+    //     {
+    //         return NoContent();
+    //     }
+    //
+    //     return NotFound();
+    // }
 }

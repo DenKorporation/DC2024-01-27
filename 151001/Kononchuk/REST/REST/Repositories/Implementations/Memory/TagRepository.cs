@@ -1,5 +1,6 @@
 ﻿using REST.Models.Entities;
 using REST.Repositories.Interfaces;
+using REST.Utilities.Exceptions;
 
 namespace REST.Repositories.Implementations.Memory;
 
@@ -7,32 +8,31 @@ public class TagRepository : MemoryRepository<long, Tag>, ITagRepository<long>
 {
     private long _globalId;
     
-    public override Tag? Add(Tag entity)
+    public override Tag Add(Tag entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
         long id = ++_globalId;
         entity.Id = id;
 
-        if (Entities.TryAdd(id, entity))
-            return entity;
-
-        return null;
+        Entities.Add(id, entity);
+        return entity;
     }
 
-    public override Tag? Update(long id, Tag entity)
+    public override Tag Update(long id, Tag entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
         
-        Tag? tag = Entities.FirstOrDefault(pair => pair.Key == id).Value;
-        if (tag is not null)
+        if (Exist(id))
         {
-            tag = entity;
-            tag.Id = id;
-            
-            return tag;
-        }
+            entity.Id = id;
+            Entities[id] = entity;
 
-        return null;
+            return entity;
+        }
+        else
+        {
+            throw new ResourceNotFoundException(code: 40402);
+        }
     }
 }

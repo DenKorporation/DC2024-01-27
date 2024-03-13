@@ -9,5 +9,5 @@ public interface IService<TRequest, TResponse>
 
     TResponse? Update(long id, TRequest dto);
 
-    bool Delete(long id);
+    void Delete(long id);
 }

@@ -55,7 +55,6 @@ if (bool.Parse(builder.Configuration["UseInMemoryRepositories"] ?? "true"))
     builder.Services.AddSingleton<IIssueRepository<long>, IssueRepository>();
     builder.Services.AddSingleton<INoteRepository<long>, NoteRepository>();
     builder.Services.AddSingleton<ITagRepository<long>, TagRepository>();
-    builder.Services.AddSingleton<IIssueTagRepository<long>, IssueTagRepository>();
 }
 else
 {

@@ -68,8 +68,8 @@ public class EditorService(
         return null;
     }
 
-    public bool Delete(long id)
+    public void Delete(long id)
     {
-        return editorRepository.Delete(id);
+        editorRepository.Delete(id);
     }
 }

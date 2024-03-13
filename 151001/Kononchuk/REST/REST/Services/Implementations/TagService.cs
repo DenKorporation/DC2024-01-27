@@ -11,7 +11,6 @@ namespace REST.Services.Implementations;
 public class TagService(
     IMapper mapper,
     ITagRepository<long> tagRepository,
-    IIssueTagRepository<long> issueTagRepository,
     AbstractValidator<Tag> validator) : ITagService
 {
     public TagResponseDto? Create(TagRequestDto dto)
@@ -23,17 +22,8 @@ public class TagService(
         if (validationResult.IsValid)
         {
             var createdTag = tagRepository.Add(tag);
-
-            if (createdTag is not null)
-            {
-                if (dto.IssueId == -1 ||
-                    issueTagRepository.Add(new IssueTag() { IssueId = dto.IssueId, TagId = createdTag.Id }) is not null)
-                {
-                    var responseDto = mapper.Map<TagResponseDto>(createdTag);
-                    responseDto.IssueId = dto.IssueId;
-                    return responseDto;
-                }
-            }
+            
+            return mapper.Map<TagResponseDto>(createdTag);
         }
 
         return null;
@@ -46,8 +36,6 @@ public class TagService(
         if (foundTag is not null)
         {
             var responseDto = mapper.Map<TagResponseDto>(foundTag);
-            var issueTags = issueTagRepository.GetByTagId(responseDto.Id);
-            responseDto.IssueId = issueTags.FirstOrDefault()?.IssueId ?? -1;
             return responseDto;
         }
 
@@ -59,8 +47,6 @@ public class TagService(
         return tagRepository.GetAll().Select(tag =>
         {
             var responseDto = mapper.Map<TagResponseDto>(tag);
-            var issueTags = issueTagRepository.GetByTagId(responseDto.Id);
-            responseDto.IssueId = issueTags.FirstOrDefault()?.IssueId ?? -1;
             return responseDto;
         }).ToList();
     }
@@ -75,24 +61,14 @@ public class TagService(
         {
             var updatedTag = tagRepository.Update(id, tag);
 
-            if (updatedTag is not null)
-            {
-                if (dto.IssueId == -1 ||
-                    issueTagRepository.Add(new IssueTag()
-                        { IssueId = dto.IssueId, TagId = updatedTag.Id }) is not null)
-                {
-                    var responseDto = mapper.Map<TagResponseDto>(updatedTag);
-                    responseDto.IssueId = dto.IssueId;
-                    return responseDto;
-                }
-            }
+            return mapper.Map<TagResponseDto>(updatedTag);
         }
 
         return null;
     }
 
-    public bool Delete(long id)
+    public void Delete(long id)
     {
-        return tagRepository.Delete(id);
+        tagRepository.Delete(id);
     }
 }

@@ -75,8 +75,8 @@ public class NoteService(
         return null;
     }
 
-    public bool Delete(long id)
+    public void Delete(long id)
     {
-        return noteRepository.Delete(id);
+        noteRepository.Delete(id);
     }
 }

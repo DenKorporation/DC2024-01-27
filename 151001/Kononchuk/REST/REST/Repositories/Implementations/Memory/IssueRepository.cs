@@ -1,5 +1,6 @@
 ﻿using REST.Models.Entities;
 using REST.Repositories.Interfaces;
+using REST.Utilities.Exceptions;
 
 namespace REST.Repositories.Implementations.Memory;
 
@@ -7,32 +8,31 @@ public class IssueRepository : MemoryRepository<long, Issue>, IIssueRepository<l
 {
     private long _globalId;
     
-    public override Issue? Add(Issue entity)
+    public override Issue Add(Issue entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
         long id = ++_globalId;
         entity.Id = id;
 
-        if (Entities.TryAdd(id, entity))
-            return entity;
-
-        return null;
+        Entities.Add(id, entity);
+        return entity;
     }
 
-    public override Issue? Update(long id, Issue entity)
+    public override Issue Update(long id, Issue entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
         
-        Issue? issue = Entities.FirstOrDefault(pair => pair.Key == id).Value;
-        if (issue is not null)
+        if (Exist(id))
         {
-            issue = entity;
-            issue.Id = id;
-            
-            return issue;
-        }
+            entity.Id = id;
+            Entities[id] = entity;
 
-        return null;
+            return entity;
+        }
+        else
+        {
+            throw new ResourceNotFoundException(code: 40402);
+        }
     }
 }

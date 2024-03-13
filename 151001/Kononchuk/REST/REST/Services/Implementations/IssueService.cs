@@ -81,8 +81,8 @@ public class IssueService(
         return null;
     }
 
-    public bool Delete(long id)
+    public void Delete(long id)
     {
-        return issueRepository.Delete(id);
+        issueRepository.Delete(id);
     }
 }

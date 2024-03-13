@@ -1,4 +1,5 @@
 ﻿using REST.Repositories.Interfaces;
+using REST.Utilities.Exceptions;
 
 namespace REST.Repositories.Implementations.Memory;
 
@@ -6,16 +7,23 @@ public abstract class MemoryRepository<TKey, TEntity> : IRepository<TKey, TEntit
 {
     protected readonly Dictionary<TKey, TEntity> Entities = new ();
 
-    public abstract TEntity? Add(TEntity entity);
+    public abstract TEntity Add(TEntity entity);
 
     public bool Exist(TKey id)
     {
         return Entities.ContainsKey(id);
     }
 
-    public TEntity? GetById(TKey id)
+    public TEntity GetById(TKey id)
     {
-        return Entities.FirstOrDefault(pair => pair.Key.Equals(id)).Value;
+        if (Exist(id))
+        {
+            return Entities[id];
+        }
+        else
+        {
+            throw new ResourceNotFoundException(code: 40401);
+        }
     }
 
     public IEnumerable<TEntity> GetAll()
@@ -23,10 +31,17 @@ public abstract class MemoryRepository<TKey, TEntity> : IRepository<TKey, TEntit
         return Entities.Select(pair => pair.Value);
     }
 
-    public abstract TEntity? Update(TKey id, TEntity entity);
+    public abstract TEntity Update(TKey id, TEntity entity);
 
-    public bool Delete(TKey id)
+    public void Delete(TKey id)
     {
-        return Exist(id) && Entities.Remove(id);
+        if (Exist(id))
+        {
+            Entities.Remove(id);
+        }
+        else
+        {
+            throw new ResourceNotFoundException(code: 40403);
+        }
     }
 }

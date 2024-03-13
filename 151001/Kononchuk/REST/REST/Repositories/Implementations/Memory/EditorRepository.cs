@@ -1,5 +1,6 @@
 ﻿using REST.Models.Entities;
 using REST.Repositories.Interfaces;
+using REST.Utilities.Exceptions;
 
 namespace REST.Repositories.Implementations.Memory;
 
@@ -7,32 +8,31 @@ public class EditorRepository : MemoryRepository<long, Editor>, IEditorRepositor
 {
     private long _globalId;
     
-    public override Editor? Add(Editor entity)
+    public override Editor Add(Editor entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
         long id = ++_globalId;
         entity.Id = id;
 
-        if (Entities.TryAdd(id, entity))
-            return entity;
-
-        return null;
+        Entities.Add(id, entity);
+        return entity;
     }
 
-    public override Editor? Update(long id, Editor entity)
+    public override Editor Update(long id, Editor entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
         
-        Editor? editor = Entities.FirstOrDefault(pair => pair.Key == id).Value;
-        if (editor is not null)
+        if (Exist(id))
         {
-            editor = entity;
-            editor.Id = id;
-            
-            return editor;
-        }
+            entity.Id = id;
+            Entities[id] = entity;
 
-        return null;
+            return entity;
+        }
+        else
+        {
+            throw new ResourceNotFoundException(code: 40402);
+        }
     }
 }
