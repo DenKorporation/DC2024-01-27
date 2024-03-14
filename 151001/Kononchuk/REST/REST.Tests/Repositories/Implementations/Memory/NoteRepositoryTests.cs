@@ -8,56 +8,66 @@ namespace REST.Tests.Repositories.Implementations.Memory;
 [TestSubject(typeof(NoteRepository))]
 public class NoteRepositoryTests
 {
-    private NoteRepository PrepareRepository()
+    private async Task<NoteRepository> PrepareRepositoryAsync()
     {
         NoteRepository repository = new NoteRepository();
         Note note = new Note { Content = "created" };
 
-        repository.Add(note);
+        await repository.AddAsync(note);
 
         return repository;
     }
 
     [Fact]
-    public void Add_NullArgument_ThrowArgumentNullException()
+    public async Task AddAsync_NullArgument_ThrowArgumentNullException()
     {
         NoteRepository repository = new NoteRepository();
 
-        void Actual() => repository.Add(null!);
+        async Task Actual() => await repository.AddAsync(null!);
 
-        Assert.Throws<ArgumentNullException>(Actual);
+        await Assert.ThrowsAsync<ArgumentNullException>(Actual);
     }
 
     [Fact]
-    public void Add_ValidNote_ReturnNoteWithSetId()
+    public async Task AddAsync_ValidNote_ReturnNoteWithSetId()
     {
         NoteRepository repository = new NoteRepository();
         Note note = new Note { Content = "created" };
 
-        var addedNote = repository.Add(note);
+        var addedNote = await repository.AddAsync(note);
         
         Assert.Equal(1, addedNote.Id);
         Assert.Equal(note.Content, addedNote.Content);
     }
 
     [Fact]
-    public void Update_NoteNotExist_ThrowResourceNotFoundException()
+    public async Task UpdateAsync_NullArgument_ThrowArgumentNullException()
     {
         NoteRepository repository = new NoteRepository();
-        Note note = new Note { Content = "updated" };
-        
-        Note Actual() => repository.Update(-1, note);
 
-        Assert.Throws<ResourceNotFoundException>(Actual);
+        async Task Actual() => await repository.UpdateAsync(1, null!);
+
+        await Assert.ThrowsAsync<ArgumentNullException>(Actual);
     }
     
     [Fact]
-    public void Update_ValidArguments_ReturnUpdatedNote()
+    public async Task UpdateAsync_NoteNotExist_ThrowResourceNotFoundException()
     {
-        NoteRepository repository = PrepareRepository();
+        NoteRepository repository = new NoteRepository();
+        Note note = new Note { Content = "updated" };
+
+        async Task<Note> Actual() => await repository.UpdateAsync(-1, note);
+
+        await Assert.ThrowsAsync<ResourceNotFoundException>(Actual);
+    }
+    
+    [Fact]
+    public async Task UpdateAsync_ValidArguments_ReturnUpdatedNote()
+    {
+        NoteRepository repository = await PrepareRepositoryAsync();
         Note note = new Note { Content = "updated" };
         
-        var updateNote = repository.Update(1, note);
+        var updateNote = await repository.UpdateAsync(1, note);
 
         Assert.Equal(note.Content, updateNote.Content);
     }

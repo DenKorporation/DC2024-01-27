@@ -8,33 +8,33 @@ namespace REST.Tests.Repositories.Implementations.Memory;
 [TestSubject(typeof(EditorRepository))]
 public class EditorRepositoryTests
 {
-    private EditorRepository PrepareRepository()
+    private async Task<EditorRepository> PrepareRepositoryAsync()
     {
         EditorRepository repository = new EditorRepository();
         Editor editor = new Editor { FirstName = "test", LastName = "test", Login = "test", Password = "12345678" };
 
-        repository.Add(editor);
+        await repository.AddAsync(editor);
 
         return repository;
     }
     
     [Fact]
-    public void Add_NullArgument_ThrowArgumentNullException()
+    public async Task AddAsync_NullArgument_ThrowArgumentNullException()
     {
         EditorRepository repository = new EditorRepository();
 
-        void Actual() => repository.Add(null!);
+        async Task Actual() => await repository.AddAsync(null!);
 
-        Assert.Throws<ArgumentNullException>(Actual);
+        await Assert.ThrowsAsync<ArgumentNullException>(Actual);
     }
 
     [Fact]
-    public void Add_ValidEditor_ReturnEditorWithSetId()
+    public async Task AddAsync_ValidEditor_ReturnEditorWithSetId()
     {
         EditorRepository repository = new EditorRepository();
         Editor editor = new Editor { FirstName = "test", LastName = "test", Login = "test", Password = "12345678" };
 
-        var addedEditor = repository.Add(editor);
+        var addedEditor = await repository.AddAsync(editor);
 
         Assert.Equal(1, addedEditor.Id);
         Assert.Equal(editor.FirstName, addedEditor.FirstName);
@@ -44,33 +44,33 @@ public class EditorRepositoryTests
     }
     
     [Fact]
-    public void Update_NullArgument_ThrowArgumentNullException()
+    public async Task UpdateAsync_NullArgument_ThrowArgumentNullException()
     {
         EditorRepository repository = new EditorRepository();
 
-        void Actual() => repository.Update(1,null!);
+        async Task Actual() => await repository.UpdateAsync(1,null!);
 
-        Assert.Throws<ArgumentNullException>(Actual);
+        await Assert.ThrowsAsync<ArgumentNullException>(Actual);
     }
     
     [Fact]
-    public void Update_EditorNotExist_ThrowResourceNotFoundException()
+    public async Task UpdateAsync_EditorNotExist_ThrowResourceNotFoundException()
     {
         EditorRepository repository = new EditorRepository();
         Editor editor = new Editor { FirstName = "updated", LastName = "updated", Login = "updated", Password = "87654321" };
 
-        Editor Actual() => repository.Update(-1, editor);
+        async Task<Editor> Actual() => await repository.UpdateAsync(-1, editor);
 
-        Assert.Throws<ResourceNotFoundException>(Actual);
+        await Assert.ThrowsAsync<ResourceNotFoundException>(Actual);
     }
     
     [Fact]
-    public void Update_ValidArguments_ReturnUpdatedEditor()
+    public async Task UpdateAsync_ValidArguments_ReturnUpdatedEditor()
     {
-        EditorRepository repository = PrepareRepository();
+        EditorRepository repository = await PrepareRepositoryAsync();
         Editor editor = new Editor { FirstName = "updated", LastName = "updated", Login = "updated", Password = "87654321" };
 
-        var updateEditor = repository.Update(1, editor);
+        var updateEditor = await repository.UpdateAsync(1, editor);
 
         Assert.Equal(editor.FirstName, updateEditor.FirstName);
         Assert.Equal(editor.LastName, updateEditor.LastName);

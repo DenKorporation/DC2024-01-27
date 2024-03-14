@@ -8,7 +8,7 @@ public class IssueRepository : MemoryRepository<long, Issue>, IIssueRepository<l
 {
     private long _globalId;
     
-    public override Issue Add(Issue entity)
+    public override Task<Issue> AddAsync(Issue entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
@@ -16,14 +16,14 @@ public class IssueRepository : MemoryRepository<long, Issue>, IIssueRepository<l
         entity.Id = id;
 
         Entities.Add(id, entity);
-        return entity;
+        return Task.FromResult(entity);
     }
 
-    public override Issue Update(long id, Issue entity)
+    public override async Task<Issue> UpdateAsync(long id, Issue entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
         
-        if (Exist(id))
+        if (await ExistAsync(id))
         {
             entity.Id = id;
             Entities[id] = entity;

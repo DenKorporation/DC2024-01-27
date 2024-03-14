@@ -5,93 +5,93 @@ namespace REST.Tests.Repositories.Implementations.Memory;
 
 public class MemoryRepositoryTest
 {
-    private MemoryRepositoryImplementation PrepareRepository()
+    private async Task<MemoryRepositoryImplementation> PrepareRepositoryAsync()
     {
         MemoryRepositoryImplementation repository = new MemoryRepositoryImplementation();
         string element = "test";
 
-        repository.Add(element);
+        await repository.AddAsync(element);
 
         return repository;
     }
 
     [Fact]
-    public void Exist_NotExist_ReturnFalse()
+    public async Task ExistAsync_NotExist_ReturnFalse()
     {
         MemoryRepositoryImplementation repository = new MemoryRepositoryImplementation();
 
-        bool isExist = repository.Exist(-1);
+        bool isExist = await repository.ExistAsync(-1);
 
         Assert.False(isExist);
     }
 
     [Fact]
-    public void Exist_Exist_ReturnTrue()
+    public async Task ExistAsync_Exist_ReturnTrue()
     {
-        MemoryRepositoryImplementation repository = PrepareRepository();
+        MemoryRepositoryImplementation repository = await PrepareRepositoryAsync();
 
-        bool isExist = repository.Exist(1);
+        bool isExist = await repository.ExistAsync(1);
 
         Assert.True(isExist);
     }
     
     [Fact]
-    public void GetById_NotExist_ThrowResourceNotFoundException()
+    public async Task GetByIdAsync_NotExist_ThrowResourceNotFoundException()
     {
-        MemoryRepositoryImplementation repository = PrepareRepository();
+        MemoryRepositoryImplementation repository = await PrepareRepositoryAsync();
 
-        string Actual() => repository.GetById(-1);
+        async Task<string> Actual() => await repository.GetByIdAsync(-1);
 
-        Assert.Throws<ResourceNotFoundException>((Func<string>)Actual);
+        await Assert.ThrowsAsync<ResourceNotFoundException>(Actual);
     }
     
     [Fact]
-    public void GetById_Exist_ReturnExistingResult()
+    public async Task GetByIdAsync_Exist_ReturnExistingResult()
     {
-        MemoryRepositoryImplementation repository = PrepareRepository();
+        MemoryRepositoryImplementation repository = await PrepareRepositoryAsync();
 
-        var element = repository.GetById(1);
+        var element = await repository.GetByIdAsync(1);
 
         Assert.NotNull(element);
     }
     
     [Fact]
-    public void GetAll_EmptyRepository_ReturnEmptyList()
+    public async Task GetAllAsync_EmptyRepository_ReturnEmptyList()
     {
         MemoryRepositoryImplementation repository = new MemoryRepositoryImplementation();
 
-        var allElements = repository.GetAll();
+        var allElements = await repository.GetAllAsync();
 
         Assert.Empty(allElements);
     }
     
     [Fact]
-    public void GetAll_NonEmptyRepository_ReturnNonEmptyList()
+    public async Task GetAllAsync_NonEmptyRepository_ReturnNonEmptyList()
     {
-        MemoryRepositoryImplementation repository = PrepareRepository();
+        MemoryRepositoryImplementation repository = await PrepareRepositoryAsync();
 
-        var allElements = repository.GetAll();
+        var allElements = await repository.GetAllAsync();
 
         Assert.NotEmpty(allElements);
     }
     
     [Fact]
-    public void Delete_ElementExist_RepositoryNoLongerContainsThisElement()
+    public async Task DeleteAsync_ElementExist_RepositoryNoLongerContainsThisElement()
     {
-        MemoryRepositoryImplementation repository = PrepareRepository();
+        MemoryRepositoryImplementation repository = await PrepareRepositoryAsync();
 
-        repository.Delete(1);
+        await repository.DeleteAsync(1);
         
-        Assert.False(repository.Exist(1));
+        Assert.False(await repository.ExistAsync(1));
     }
     
     [Fact]
-    public void Delete_ElementNotExist_ThrowResourceNotFoundException()
+    public async Task DeleteAsync_ElementNotExist_ThrowResourceNotFoundException()
     {
-        MemoryRepositoryImplementation repository = PrepareRepository();
+        MemoryRepositoryImplementation repository = await PrepareRepositoryAsync();
 
-        void Actual() => repository.Delete(-1);
+        async Task Actual() => await repository.DeleteAsync(-1);
 
-        Assert.Throws<ResourceNotFoundException>(Actual);
+        await Assert.ThrowsAsync<ResourceNotFoundException>(Actual);
     }
 }

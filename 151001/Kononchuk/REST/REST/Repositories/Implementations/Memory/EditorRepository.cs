@@ -8,7 +8,7 @@ public class EditorRepository : MemoryRepository<long, Editor>, IEditorRepositor
 {
     private long _globalId;
     
-    public override Editor Add(Editor entity)
+    public override Task<Editor> AddAsync(Editor entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
@@ -16,14 +16,14 @@ public class EditorRepository : MemoryRepository<long, Editor>, IEditorRepositor
         entity.Id = id;
 
         Entities.Add(id, entity);
-        return entity;
+        return Task.FromResult(entity);
     }
 
-    public override Editor Update(long id, Editor entity)
+    public override async Task<Editor> UpdateAsync(long id, Editor entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
         
-        if (Exist(id))
+        if (await ExistAsync(id))
         {
             entity.Id = id;
             Entities[id] = entity;

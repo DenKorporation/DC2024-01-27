@@ -7,16 +7,16 @@ public abstract class MemoryRepository<TKey, TEntity> : IRepository<TKey, TEntit
 {
     protected readonly Dictionary<TKey, TEntity> Entities = new ();
 
-    public abstract TEntity Add(TEntity entity);
+    public abstract Task<TEntity> AddAsync(TEntity entity);
 
-    public bool Exist(TKey id)
+    public Task<bool> ExistAsync(TKey id)
     {
-        return Entities.ContainsKey(id);
+        return Task.FromResult(Entities.ContainsKey(id));
     }
 
-    public TEntity GetById(TKey id)
+    public async Task<TEntity> GetByIdAsync(TKey id)
     {
-        if (Exist(id))
+        if (await ExistAsync(id))
         {
             return Entities[id];
         }
@@ -26,16 +26,16 @@ public abstract class MemoryRepository<TKey, TEntity> : IRepository<TKey, TEntit
         }
     }
 
-    public IEnumerable<TEntity> GetAll()
+    public Task<IEnumerable<TEntity>> GetAllAsync()
     {
-        return Entities.Select(pair => pair.Value);
+        return Task.FromResult(Entities.Select(pair => pair.Value));
     }
 
-    public abstract TEntity Update(TKey id, TEntity entity);
+    public abstract Task<TEntity> UpdateAsync(TKey id, TEntity entity);
 
-    public void Delete(TKey id)
+    public async Task DeleteAsync(TKey id)
     {
-        if (Exist(id))
+        if (await ExistAsync(id))
         {
             Entities.Remove(id);
         }

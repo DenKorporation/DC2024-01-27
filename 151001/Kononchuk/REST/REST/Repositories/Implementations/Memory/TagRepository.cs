@@ -8,7 +8,7 @@ public class TagRepository : MemoryRepository<long, Tag>, ITagRepository<long>
 {
     private long _globalId;
     
-    public override Tag Add(Tag entity)
+    public override Task<Tag> AddAsync(Tag entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
@@ -16,14 +16,14 @@ public class TagRepository : MemoryRepository<long, Tag>, ITagRepository<long>
         entity.Id = id;
 
         Entities.Add(id, entity);
-        return entity;
+        return Task.FromResult(entity);
     }
 
-    public override Tag Update(long id, Tag entity)
+    public override async Task<Tag> UpdateAsync(long id, Tag entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
         
-        if (Exist(id))
+        if (await ExistAsync(id))
         {
             entity.Id = id;
             Entities[id] = entity;

@@ -8,7 +8,7 @@ public class NoteRepository : MemoryRepository<long, Note>, INoteRepository<long
 {
     private long _globalId;
     
-    public override Note Add(Note entity)
+    public override Task<Note> AddAsync(Note entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
@@ -16,14 +16,14 @@ public class NoteRepository : MemoryRepository<long, Note>, INoteRepository<long
         entity.Id = id;
 
         Entities.Add(id, entity);
-        return entity;
+        return Task.FromResult(entity);
     }
 
-    public override Note Update(long id, Note entity)
+    public override async Task<Note> UpdateAsync(long id, Note entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
         
-        if (Exist(id))
+        if (await ExistAsync(id))
         {
             entity.Id = id;
             Entities[id] = entity;

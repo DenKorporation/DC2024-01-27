@@ -7,18 +7,18 @@ public class MemoryRepositoryImplementation : MemoryRepository<long, string>
 {
     private long _globalId;
 
-    public override string Add(string entity)
+    public override Task<string> AddAsync(string entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
         long id = ++_globalId;
 
         Entities.Add(id, entity);
-        return entity;
+        return Task.FromResult(entity);
     }
 
     [ExcludeFromCodeCoverage]
-    public override string Update(long id, string entity)
+    public override Task<string> UpdateAsync(long id, string entity)
     {
         throw new NotImplementedException();
     }

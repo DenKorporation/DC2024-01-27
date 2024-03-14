@@ -8,66 +8,66 @@ namespace REST.Tests.Repositories.Implementations.Memory;
 [TestSubject(typeof(IssueRepository))]
 public class IssueRepositoryTests
 {
-    private IssueRepository PrepareRepository()
+    private async Task<IssueRepository> PrepareRepositoryAsync()
     {
         IssueRepository repository = new IssueRepository();
         Issue issue = new Issue { Title = "created"};
 
-        repository.Add(issue);
+        await repository.AddAsync(issue);
 
         return repository;
     }
 
     [Fact]
-    public void Add_NullArgument_ThrowArgumentNullException()
+    public async Task AddAsync_NullArgument_ThrowArgumentNullException()
     {
         IssueRepository repository = new IssueRepository();
 
-        void Actual() => repository.Add(null!);
+        async Task Actual() => await repository.AddAsync(null!);
 
-        Assert.Throws<ArgumentNullException>(Actual);
+        await Assert.ThrowsAsync<ArgumentNullException>(Actual);
     }
 
     [Fact]
-    public void Add_ValidIssue_ReturnIssueWithSetId()
+    public async Task AddAsync_ValidIssue_ReturnIssueWithSetId()
     {
         IssueRepository repository = new IssueRepository();
         Issue issue = new Issue { Title = "created"};
 
-        var addedIssue = repository.Add(issue);
+        var addedIssue = await repository.AddAsync(issue);
 
         Assert.Equal(1, addedIssue.Id);
         Assert.Equal(issue.Title, addedIssue.Title);
     }
 
     [Fact]
-    public void Update_NullArgument_ThrowArgumentNullException()
+    public async Task UpdateAsync_NullArgument_ThrowArgumentNullException()
     {
         IssueRepository repository = new IssueRepository();
 
-        void Actual() => repository.Update(1, null!);
+        async Task Actual() => await repository.UpdateAsync(1, null!);
 
-        Assert.Throws<ArgumentNullException>(Actual);
+        await Assert.ThrowsAsync<ArgumentNullException>(Actual);
     }
 
     [Fact]
-    public void Update_IssueNotExist_ThrowResourceNotFoundException()
+    public async Task UpdateAsync_IssueNotExist_ThrowResourceNotFoundException()
     {
         IssueRepository repository = new IssueRepository();
         Issue issue = new Issue { Title = "updated" };
 
-        Issue Actual() => repository.Update(-1, issue);
+        async Task<Issue> Actual() => await repository.UpdateAsync(-1, issue);
 
-        Assert.Throws<ResourceNotFoundException>(Actual);
+        await Assert.ThrowsAsync<ResourceNotFoundException>(Actual);
     }
 
     [Fact]
-    public void Update_ValidArguments_ReturnUpdatedIssue()
+    public async Task UpdateAsync_ValidArguments_ReturnUpdatedIssue()
     {
-        IssueRepository repository = PrepareRepository();
+        IssueRepository repository = await PrepareRepositoryAsync();
         Issue issue = new Issue { Title = "updated" };
 
-        var updateIssue = repository.Update(1, issue);
+        var updateIssue = await repository.UpdateAsync(1, issue);
 
         Assert.Equal(issue.Title, updateIssue.Title);
     }
