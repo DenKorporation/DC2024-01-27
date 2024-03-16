@@ -3,7 +3,7 @@ using REST.Models.Entities;
 using REST.Repositories.Implementations.Memory;
 using REST.Utilities.Exceptions;
 
-namespace REST.Tests.Repositories.Implementations.Memory;
+namespace REST.UnitTests.Repositories.Implementations.Memory;
 
 [TestSubject(typeof(IssueRepository))]
 public class IssueRepositoryTests
@@ -19,7 +19,7 @@ public class IssueRepositoryTests
     }
 
     [Fact]
-    public async Task AddAsync_NullArgument_ThrowArgumentNullException()
+    public async Task AddAsync_NullArgument_ThrowsArgumentNullException()
     {
         IssueRepository repository = new IssueRepository();
 
@@ -29,7 +29,7 @@ public class IssueRepositoryTests
     }
 
     [Fact]
-    public async Task AddAsync_ValidIssue_ReturnIssueWithSetId()
+    public async Task AddAsync_ValidIssue_ReturnsIssueWithSetId()
     {
         IssueRepository repository = new IssueRepository();
         Issue issue = new Issue { Title = "created"};
@@ -41,7 +41,7 @@ public class IssueRepositoryTests
     }
 
     [Fact]
-    public async Task UpdateAsync_NullArgument_ThrowArgumentNullException()
+    public async Task UpdateAsync_NullArgument_ThrowsArgumentNullException()
     {
         IssueRepository repository = new IssueRepository();
 
@@ -51,7 +51,7 @@ public class IssueRepositoryTests
     }
 
     [Fact]
-    public async Task UpdateAsync_IssueNotExist_ThrowResourceNotFoundException()
+    public async Task UpdateAsync_IssueNotExist_ThrowsResourceNotFoundException()
     {
         IssueRepository repository = new IssueRepository();
         Issue issue = new Issue { Title = "updated" };
@@ -62,7 +62,7 @@ public class IssueRepositoryTests
     }
 
     [Fact]
-    public async Task UpdateAsync_ValidArguments_ReturnUpdatedIssue()
+    public async Task UpdateAsync_ValidArguments_ReturnsUpdatedIssue()
     {
         IssueRepository repository = await PrepareRepositoryAsync();
         Issue issue = new Issue { Title = "updated" };

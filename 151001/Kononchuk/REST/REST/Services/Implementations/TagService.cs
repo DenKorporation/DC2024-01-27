@@ -5,6 +5,7 @@ using REST.Models.DTOs.Response;
 using REST.Models.Entities;
 using REST.Repositories.Interfaces;
 using REST.Services.Interfaces;
+using ValidationException = REST.Utilities.Exceptions.ValidationException;
 
 namespace REST.Services.Implementations;
 
@@ -13,62 +14,55 @@ public class TagService(
     ITagRepository<long> tagRepository,
     AbstractValidator<Tag> validator) : ITagService
 {
-    public TagResponseDto? Create(TagRequestDto dto)
+    public async Task<TagResponseDto> CreateAsync(TagRequestDto dto)
     {
+        if (dto == null) throw new ArgumentNullException(nameof(dto));
         var tag = mapper.Map<Tag>(dto);
 
-        var validationResult = validator.Validate(tag);
+        var validationResult = await validator.ValidateAsync(tag);
 
-        if (validationResult.IsValid)
+        if (!validationResult.IsValid)
         {
-            var createdTag = tagRepository.Add(tag);
-            
-            return mapper.Map<TagResponseDto>(createdTag);
+            throw new ValidationException("Tag data has not been validated", 40001);
         }
 
-        return null;
+        var createdTag = await tagRepository.AddAsync(tag);
+
+        return mapper.Map<TagResponseDto>(createdTag);
     }
 
-    public TagResponseDto? GetById(long id)
+    public async Task<TagResponseDto> GetByIdAsync(long id)
     {
-        var foundTag = tagRepository.GetById(id);
+        var foundTag = await tagRepository.GetByIdAsync(id);
 
-        if (foundTag is not null)
-        {
-            var responseDto = mapper.Map<TagResponseDto>(foundTag);
-            return responseDto;
-        }
-
-        return null;
+        var responseDto = mapper.Map<TagResponseDto>(foundTag);
+        return responseDto;
     }
 
-    public List<TagResponseDto> GetAll()
+    public async Task<IEnumerable<TagResponseDto>> GetAllAsync()
     {
-        return tagRepository.GetAll().Select(tag =>
-        {
-            var responseDto = mapper.Map<TagResponseDto>(tag);
-            return responseDto;
-        }).ToList();
+        return (await tagRepository.GetAllAsync()).Select(mapper.Map<TagResponseDto>).ToList();
     }
 
-    public TagResponseDto? Update(long id, TagRequestDto dto)
+    public async Task<TagResponseDto> UpdateAsync(long id, TagRequestDto dto)
     {
+        if (dto == null) throw new ArgumentNullException(nameof(dto));
         var tag = mapper.Map<Tag>(dto);
 
-        var validationResult = validator.Validate(tag);
+        var validationResult = await validator.ValidateAsync(tag);
 
-        if (validationResult.IsValid)
+        if (!validationResult.IsValid)
         {
-            var updatedTag = tagRepository.Update(id, tag);
-
-            return mapper.Map<TagResponseDto>(updatedTag);
+            throw new ValidationException("Tag data has not been validated", 40002);
         }
 
-        return null;
+        var updatedTag = await tagRepository.UpdateAsync(id, tag);
+
+        return mapper.Map<TagResponseDto>(updatedTag);
     }
 
-    public void Delete(long id)
+    public async Task DeleteAsync(long id)
     {
-        tagRepository.Delete(id);
+        await tagRepository.DeleteAsync(id);
     }
 }

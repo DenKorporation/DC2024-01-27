@@ -3,7 +3,7 @@ using REST.Models.Entities;
 using REST.Repositories.Implementations.Memory;
 using REST.Utilities.Exceptions;
 
-namespace REST.Tests.Repositories.Implementations.Memory;
+namespace REST.UnitTests.Repositories.Implementations.Memory;
 
 [TestSubject(typeof(NoteRepository))]
 public class NoteRepositoryTests
@@ -19,7 +19,7 @@ public class NoteRepositoryTests
     }
 
     [Fact]
-    public async Task AddAsync_NullArgument_ThrowArgumentNullException()
+    public async Task AddAsync_NullArgument_ThrowsArgumentNullException()
     {
         NoteRepository repository = new NoteRepository();
 
@@ -29,7 +29,7 @@ public class NoteRepositoryTests
     }
 
     [Fact]
-    public async Task AddAsync_ValidNote_ReturnNoteWithSetId()
+    public async Task AddAsync_ValidNote_ReturnsNoteWithSetId()
     {
         NoteRepository repository = new NoteRepository();
         Note note = new Note { Content = "created" };
@@ -41,7 +41,7 @@ public class NoteRepositoryTests
     }
 
     [Fact]
-    public async Task UpdateAsync_NullArgument_ThrowArgumentNullException()
+    public async Task UpdateAsync_NullArgument_ThrowsArgumentNullException()
     {
         NoteRepository repository = new NoteRepository();
 
@@ -51,7 +51,7 @@ public class NoteRepositoryTests
     }
     
     [Fact]
-    public async Task UpdateAsync_NoteNotExist_ThrowResourceNotFoundException()
+    public async Task UpdateAsync_NoteNotExist_ThrowsResourceNotFoundException()
     {
         NoteRepository repository = new NoteRepository();
         Note note = new Note { Content = "updated" };
@@ -62,7 +62,7 @@ public class NoteRepositoryTests
     }
     
     [Fact]
-    public async Task UpdateAsync_ValidArguments_ReturnUpdatedNote()
+    public async Task UpdateAsync_ValidArguments_ReturnsUpdatedNote()
     {
         NoteRepository repository = await PrepareRepositoryAsync();
         Note note = new Note { Content = "updated" };

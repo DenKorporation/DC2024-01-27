@@ -5,84 +5,69 @@ using REST.Models.DTOs.Response;
 using REST.Models.Entities;
 using REST.Repositories.Interfaces;
 using REST.Services.Interfaces;
+using ValidationException = REST.Utilities.Exceptions.ValidationException;
 
 namespace REST.Services.Implementations;
 
 public class IssueService(
     IMapper mapper,
     IIssueRepository<long> issueRepository,
-    IEditorRepository<long> editorRepository,
     AbstractValidator<Issue> validator)
     : IIssueService
 {
-    public IssueResponseDto? Create(IssueRequestDto dto)
+    public async Task<IssueResponseDto> CreateAsync(IssueRequestDto dto)
     {
+        if (dto == null) throw new ArgumentNullException(nameof(dto));
         var issue = mapper.Map<Issue>(dto);
 
-        var validationResult = validator.Validate(issue);
+        var validationResult = await validator.ValidateAsync(issue);
 
-        if (validationResult.IsValid)
+        if (!validationResult.IsValid)
         {
-            if (issue.EditorId == -1 || editorRepository.Exist(issue.EditorId))
-            {
-                var createdIssue = issueRepository.Add(issue);
-
-                if (createdIssue is not null)
-                {
-                    createdIssue.Created = DateTime.Now;
-                    createdIssue.Modified = issue.Created;
-
-                    return mapper.Map<IssueResponseDto>(createdIssue);
-                }   
-            }
+            throw new ValidationException("Issue data has not been validated", 40001);
         }
 
-        return null;
+        var createdIssue = await issueRepository.AddAsync(issue);
+
+        createdIssue.Created = DateTime.Now;
+        createdIssue.Modified = issue.Created;
+
+        return mapper.Map<IssueResponseDto>(createdIssue);
     }
 
-    public IssueResponseDto? GetById(long id)
+    public async Task<IssueResponseDto> GetByIdAsync(long id)
     {
-        var foundIssue = issueRepository.GetById(id);
+        var foundIssue = await issueRepository.GetByIdAsync(id);
 
-        if (foundIssue is not null)
-        {
-            return mapper.Map<IssueResponseDto>(foundIssue);
-        }
-
-        return null;
+        return mapper.Map<IssueResponseDto>(foundIssue);
     }
 
-    public List<IssueResponseDto> GetAll()
+    public async Task<IEnumerable<IssueResponseDto>> GetAllAsync()
     {
-        return issueRepository.GetAll().Select(mapper.Map<IssueResponseDto>).ToList();
+        return (await issueRepository.GetAllAsync()).Select(mapper.Map<IssueResponseDto>).ToList();
     }
 
-    public IssueResponseDto? Update(long id, IssueRequestDto dto)
+    public async Task<IssueResponseDto> UpdateAsync(long id, IssueRequestDto dto)
     {
+        if (dto == null) throw new ArgumentNullException(nameof(dto));
         var issue = mapper.Map<Issue>(dto);
 
-        var validationResult = validator.Validate(issue);
+        var validationResult = await validator.ValidateAsync(issue);
 
-        if (validationResult.IsValid)
+        if (!validationResult.IsValid)
         {
-            if (issue.EditorId == -1 || editorRepository.Exist(issue.EditorId))
-            {
-                var updatedIssue = issueRepository.Update(id, issue);
-
-                if (updatedIssue is not null)
-                {
-                    updatedIssue.Modified = DateTime.Now;
-
-                    return mapper.Map<IssueResponseDto>(updatedIssue);
-                }
-            }
+            throw new ValidationException("Issue data has not been validated", 40002);
         }
 
-        return null;
+        var updatedIssue = await issueRepository.UpdateAsync(id, issue);
+
+        updatedIssue.Modified = DateTime.Now;
+
+        return mapper.Map<IssueResponseDto>(updatedIssue);
     }
 
-    public void Delete(long id)
+    public async Task DeleteAsync(long id)
     {
-        issueRepository.Delete(id);
+        await issueRepository.DeleteAsync(id);
     }
 }

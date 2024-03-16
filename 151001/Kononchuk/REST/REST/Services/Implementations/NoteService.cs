@@ -5,78 +5,64 @@ using REST.Models.DTOs.Response;
 using REST.Models.Entities;
 using REST.Repositories.Interfaces;
 using REST.Services.Interfaces;
+using ValidationException = REST.Utilities.Exceptions.ValidationException;
 
 namespace REST.Services.Implementations;
 
 public class NoteService(
     IMapper mapper,
     INoteRepository<long> noteRepository,
-    IIssueRepository<long> issueRepository,
     AbstractValidator<Note> validator) : INoteService
 {
-    public NoteResponseDto? Create(NoteRequestDto dto)
+    public async Task<NoteResponseDto> CreateAsync(NoteRequestDto dto)
     {
+        if (dto == null) throw new ArgumentNullException(nameof(dto));
         var note = mapper.Map<Note>(dto);
 
-        var validationResult = validator.Validate(note);
+        var validationResult = await validator.ValidateAsync(note);
 
-        if (validationResult.IsValid)
+        if (!validationResult.IsValid)
         {
-            if (note.IssueId == -1 || issueRepository.Exist(note.IssueId))
-            {
-                var createdNote = noteRepository.Add(note);
-
-                if (createdNote is not null)
-                {
-                    return mapper.Map<NoteResponseDto>(createdNote);
-                }
-            }
+            throw new ValidationException("Note data has not been validated", 40001);
         }
 
-        return null;
+        var createdNote = await noteRepository.AddAsync(note);
+
+        return mapper.Map<NoteResponseDto>(createdNote);
     }
 
-    public NoteResponseDto? GetById(long id)
+
+    public async Task<NoteResponseDto> GetByIdAsync(long id)
     {
-        var foundNote = noteRepository.GetById(id);
+        var foundNote = await noteRepository.GetByIdAsync(id);
 
-        if (foundNote is not null)
-        {
-            return mapper.Map<NoteResponseDto>(foundNote);
-        }
-
-        return null;
+        return mapper.Map<NoteResponseDto>(foundNote);
     }
 
-    public List<NoteResponseDto> GetAll()
+    public async Task<IEnumerable<NoteResponseDto>> GetAllAsync()
     {
-        return noteRepository.GetAll().Select(mapper.Map<NoteResponseDto>).ToList();
+        return (await noteRepository.GetAllAsync()).Select(mapper.Map<NoteResponseDto>).ToList();
     }
 
-    public NoteResponseDto? Update(long id, NoteRequestDto dto)
+    public async Task<NoteResponseDto> UpdateAsync(long id, NoteRequestDto dto)
     {
+        if (dto == null) throw new ArgumentNullException(nameof(dto));
         var note = mapper.Map<Note>(dto);
 
-        var validationResult = validator.Validate(note);
+        var validationResult = await validator.ValidateAsync(note);
 
-        if (validationResult.IsValid)
+        if (!validationResult.IsValid)
         {
-            if (note.IssueId == -1 || issueRepository.Exist(note.IssueId))
-            {
-                var updatedNote = noteRepository.Update(id, note);
-
-                if (updatedNote is not null)
-                {
-                    return mapper.Map<NoteResponseDto>(updatedNote);
-                }
-            }
+            throw new ValidationException("Note data has not been validated", 40002);
         }
 
-        return null;
+        var updatedNote = await noteRepository.UpdateAsync(id, note);
+
+        return mapper.Map<NoteResponseDto>(updatedNote);
     }
 
-    public void Delete(long id)
+    public async Task DeleteAsync(long id)
     {
-        noteRepository.Delete(id);
+        await noteRepository.DeleteAsync(id);
     }
 }

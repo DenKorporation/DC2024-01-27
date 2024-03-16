@@ -3,7 +3,7 @@ using REST.Models.Entities;
 using REST.Repositories.Implementations.Memory;
 using REST.Utilities.Exceptions;
 
-namespace REST.Tests.Repositories.Implementations.Memory;
+namespace REST.UnitTests.Repositories.Implementations.Memory;
 
 [TestSubject(typeof(EditorRepository))]
 public class EditorRepositoryTests
@@ -19,7 +19,7 @@ public class EditorRepositoryTests
     }
     
     [Fact]
-    public async Task AddAsync_NullArgument_ThrowArgumentNullException()
+    public async Task AddAsync_NullArgument_ThrowsArgumentNullException()
     {
         EditorRepository repository = new EditorRepository();
 
@@ -29,7 +29,7 @@ public class EditorRepositoryTests
     }
 
     [Fact]
-    public async Task AddAsync_ValidEditor_ReturnEditorWithSetId()
+    public async Task AddAsync_ValidEditor_ReturnsEditorWithSetId()
     {
         EditorRepository repository = new EditorRepository();
         Editor editor = new Editor { FirstName = "test", LastName = "test", Login = "test", Password = "12345678" };
@@ -44,7 +44,7 @@ public class EditorRepositoryTests
     }
     
     [Fact]
-    public async Task UpdateAsync_NullArgument_ThrowArgumentNullException()
+    public async Task UpdateAsync_NullArgument_ThrowsArgumentNullException()
     {
         EditorRepository repository = new EditorRepository();
 
@@ -54,7 +54,7 @@ public class EditorRepositoryTests
     }
     
     [Fact]
-    public async Task UpdateAsync_EditorNotExist_ThrowResourceNotFoundException()
+    public async Task UpdateAsync_EditorNotExist_ThrowsResourceNotFoundException()
     {
         EditorRepository repository = new EditorRepository();
         Editor editor = new Editor { FirstName = "updated", LastName = "updated", Login = "updated", Password = "87654321" };
@@ -65,7 +65,7 @@ public class EditorRepositoryTests
     }
     
     [Fact]
-    public async Task UpdateAsync_ValidArguments_ReturnUpdatedEditor()
+    public async Task UpdateAsync_ValidArguments_ReturnsUpdatedEditor()
     {
         EditorRepository repository = await PrepareRepositoryAsync();
         Editor editor = new Editor { FirstName = "updated", LastName = "updated", Login = "updated", Password = "87654321" };

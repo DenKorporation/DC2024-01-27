@@ -3,7 +3,7 @@ using REST.Models.Entities;
 using REST.Repositories.Implementations.Memory;
 using REST.Utilities.Exceptions;
 
-namespace REST.Tests.Repositories.Implementations.Memory;
+namespace REST.UnitTests.Repositories.Implementations.Memory;
 
 [TestSubject(typeof(TagRepository))]
 public class TagRepositoryTests
@@ -19,7 +19,7 @@ public class TagRepositoryTests
     }
 
     [Fact]
-    public async Task AddAsync_NullArgument_ThrowArgumentNullException()
+    public async Task AddAsync_NullArgument_ThrowsArgumentNullException()
     {
         TagRepository repository = new TagRepository();
 
@@ -29,7 +29,7 @@ public class TagRepositoryTests
     }
 
     [Fact]
-    public async Task AddAsync_ValidTag_ReturnTagWithSetId()
+    public async Task AddAsync_ValidTag_ReturnsTagWithSetId()
     {
         TagRepository repository = new TagRepository();
         Tag tag = new Tag { Name = "created"};
@@ -41,7 +41,7 @@ public class TagRepositoryTests
     }
 
     [Fact]
-    public async Task UpdateAsync_NullArgument_ThrowArgumentNullException()
+    public async Task UpdateAsync_NullArgument_ThrowsArgumentNullException()
     {
         TagRepository repository = new TagRepository();
 
@@ -51,7 +51,7 @@ public class TagRepositoryTests
     }
 
     [Fact]
-    public async Task UpdateAsync_TagNotExist_ThrowResourceNotFoundException()
+    public async Task UpdateAsync_TagNotExist_ThrowsResourceNotFoundException()
     {
         TagRepository repository = new TagRepository();
         Tag tag = new Tag { Name = "updated" };
@@ -62,7 +62,7 @@ public class TagRepositoryTests
     }
 
     [Fact]
-    public async Task UpdateAsync_ValidArguments_ReturnUpdatedTag()
+    public async Task UpdateAsync_ValidArguments_ReturnsUpdatedTag()
     {
         TagRepository repository = await PrepareRepositoryAsync();
         Tag tag = new Tag { Name = "created" };

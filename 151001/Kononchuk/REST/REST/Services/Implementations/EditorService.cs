@@ -5,6 +5,7 @@ using REST.Models.DTOs.Response;
 using REST.Models.Entities;
 using REST.Repositories.Interfaces;
 using REST.Services.Interfaces;
+using ValidationException = REST.Utilities.Exceptions.ValidationException;
 
 namespace REST.Services.Implementations;
 
@@ -13,63 +14,55 @@ public class EditorService(
     IEditorRepository<long> editorRepository,
     AbstractValidator<Editor> validator) : IEditorService
 {
-    public EditorResponseDto? Create(EditorRequestDto dto)
+    public async Task<EditorResponseDto> CreateAsync(EditorRequestDto dto)
     {
+        if (dto == null) throw new ArgumentNullException(nameof(dto));
+
         var editor = mapper.Map<Editor>(dto);
 
-        var validationResult = validator.Validate(editor);
+        var validationResult = await validator.ValidateAsync(editor);
 
-        if (validationResult.IsValid)
+        if (!validationResult.IsValid)
         {
-            var createdEditor = editorRepository.Add(editor);
-
-            if (createdEditor is not null)
-            {
-                return mapper.Map<EditorResponseDto>(createdEditor);
-            }
+            throw new ValidationException("Editor data has not been validated", 40001);
         }
 
-        return null;
+        var createdEditor = await editorRepository.AddAsync(editor);
+
+        return mapper.Map<EditorResponseDto>(createdEditor);
     }
 
-    public EditorResponseDto? GetById(long id)
+    public async Task<EditorResponseDto> GetByIdAsync(long id)
     {
-        var foundEditor = editorRepository.GetById(id);
+        var foundEditor = await editorRepository.GetByIdAsync(id);
 
-        if (foundEditor is not null)
-        {
-            return mapper.Map<EditorResponseDto>(foundEditor);
-        }
-
-        return null;
+        return mapper.Map<EditorResponseDto>(foundEditor);
     }
 
-    public List<EditorResponseDto> GetAll()
+    public async Task<IEnumerable<EditorResponseDto>> GetAllAsync()
     {
-        return editorRepository.GetAll().Select(mapper.Map<EditorResponseDto>).ToList();
+        return (await editorRepository.GetAllAsync()).Select(mapper.Map<EditorResponseDto>).ToList();
     }
 
-    public EditorResponseDto? Update(long id, EditorRequestDto dto)
+    public async Task<EditorResponseDto> UpdateAsync(long id, EditorRequestDto dto)
     {
+        if (dto == null) throw new ArgumentNullException(nameof(dto));
         var editor = mapper.Map<Editor>(dto);
 
-        var validationResult = validator.Validate(editor);
+        var validationResult = await validator.ValidateAsync(editor);
 
-        if (validationResult.IsValid)
+        if (!validationResult.IsValid)
         {
-            var updatedEditor = editorRepository.Update(id, editor);
-
-            if (updatedEditor is not null)
-            {
-                return mapper.Map<EditorResponseDto>(updatedEditor);
-            }
+            throw new ValidationException("Editor data has not been validated", 40002);
         }
 
-        return null;
+        var updatedEditor = await editorRepository.UpdateAsync(id, editor);
+
+        return mapper.Map<EditorResponseDto>(updatedEditor);
     }
 
-    public void Delete(long id)
+    public async Task DeleteAsync(long id)
     {
-        editorRepository.Delete(id);
+        await editorRepository.DeleteAsync(id);
     }
 }

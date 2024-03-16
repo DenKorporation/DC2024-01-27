@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using REST.Repositories.Implementations.Memory;
 
-namespace REST.Tests.Repositories.Implementations.Memory.Utiles;
+namespace REST.UnitTests.Repositories.Implementations.Memory.Mocks;
 
-public class MemoryRepositoryImplementation : MemoryRepository<long, string>
+public class TestableRepository : MemoryRepository<long, string>
 {
     private long _globalId;
 

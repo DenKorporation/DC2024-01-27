@@ -1,11 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Moq;
-using REST.Controllers;
-using REST.Models.DTOs.Request;
-using REST.Models.DTOs.Response;
-using REST.Services.Interfaces;
-
-namespace REST.Tests.Controllers;
+﻿namespace REST.UnitTests.Controllers;
 
 public class EditorControllerTests
 {
