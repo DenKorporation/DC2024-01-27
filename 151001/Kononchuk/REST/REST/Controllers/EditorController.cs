@@ -14,19 +14,18 @@ public class EditorController(IEditorService editorService) : Controller
 {
     [HttpPost]
     [ProducesResponseType(typeof(EditorResponseDto), (int)HttpStatusCode.Created)]
-    public ActionResult  Create([FromBody] EditorRequestDto dto)
+    public async Task<IActionResult> Create([FromBody] EditorRequestDto dto)
     {
-        // TODO: add a check for null and send the appropriate status code
-        var editor = editorService.Create(dto);
+        var editor = await editorService.CreateAsync(dto);
 
         return CreatedAtAction(null, editor);
     }
 
     [HttpGet]
     [ProducesResponseType(typeof(List<EditorResponseDto>), (int)HttpStatusCode.OK)]
-    public ActionResult GetAll()
+    public async Task<IActionResult> GetAll()
     {
-        var editors = editorService.GetAll();
+        var editors = await editorService.GetAllAsync();
 
         return Ok(editors);
     }
@@ -34,43 +33,29 @@ public class EditorController(IEditorService editorService) : Controller
     [HttpGet("{id:long}")]
     [ProducesResponseType(typeof(EditorResponseDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult GetById(long id)
+    public async Task<IActionResult> GetById(long id)
     {
-        var editor = editorService.GetById(id);
+        var editor = await editorService.GetByIdAsync(id);
 
-        if (editor is not null)
-        {
-            return Ok(editor);
-        }
-
-        return NotFound();
+        return Ok(editor);
     }
 
     [HttpPut]
     [ProducesResponseType(typeof(EditorResponseDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult Update([FromBody] EditorRequestDto dto)
+    public async Task<IActionResult> Update([FromBody] EditorRequestDto dto)
     {
-        var editor = editorService.Update(dto.Id, dto);
+        var editor = await editorService.UpdateAsync(dto.Id, dto);
 
-        if (editor is not null)
-        {
-            return Ok(editor);
-        }
-
-        return NotFound();
+        return Ok(editor);
     }
-    // TODO update this for new logic
-    // [HttpDelete("{id:long}")]
-    // [ProducesResponseType((int)HttpStatusCode.NoContent)]
-    // [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    // public ActionResult Delete(long id)
-    // {
-    //     if (editorService.Delete(id))
-    //     {
-    //         return NoContent();
-    //     }
-    //
-    //     return NotFound();
-    // }
+    
+    [HttpDelete("{id:long}")]
+    [ProducesResponseType((int)HttpStatusCode.NoContent)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    public async Task<IActionResult> Delete(long id)
+    {
+        await editorService.DeleteAsync(id);
+        return NoContent();
+    }
 }

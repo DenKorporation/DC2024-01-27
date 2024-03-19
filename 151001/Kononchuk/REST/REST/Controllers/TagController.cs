@@ -14,18 +14,18 @@ public class TagController(ITagService tagService) : Controller
 {
     [HttpPost]
     [ProducesResponseType(typeof(TagResponseDto), (int)HttpStatusCode.Created)]
-    public ActionResult Create([FromBody] TagRequestDto dto)
+    public async Task<IActionResult> Create([FromBody] TagRequestDto dto)
     {
-        var tag = tagService.Create(dto);
+        var tag = await tagService.CreateAsync(dto);
 
         return CreatedAtAction(null, tag);
     }
 
     [HttpGet]
     [ProducesResponseType(typeof(List<TagResponseDto>), (int)HttpStatusCode.OK)]
-    public ActionResult GetAll()
+    public async Task<IActionResult> GetAll()
     {
-        var tags = tagService.GetAll();
+        var tags = await tagService.GetAllAsync();
 
         return Ok(tags);
     }
@@ -33,44 +33,30 @@ public class TagController(ITagService tagService) : Controller
     [HttpGet("{id:long}")]
     [ProducesResponseType(typeof(TagResponseDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult GetById(long id)
+    public async Task<IActionResult> GetById(long id)
     {
-        var tag = tagService.GetById(id);
+        var tag = await tagService.GetByIdAsync(id);
 
-        if (tag is not null)
-        {
-            return Ok(tag);
-        }
-
-        return NotFound();
+        return Ok(tag);
     }
 
     [HttpPut]
     [ProducesResponseType(typeof(TagResponseDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult Update([FromBody] TagRequestDto dto)
+    public async Task<IActionResult> Update([FromBody] TagRequestDto dto)
     {
-        var tag = tagService.Update(dto.Id, dto);
+        var tag = await tagService.UpdateAsync(dto.Id, dto);
 
-        if (tag is not null)
-        {
-            return Ok(tag);
-        }
-
-        return NotFound();
+        return Ok(tag);
     }
 
-    // TODO update this for new logic
-    // [HttpDelete("{id:long}")]
-    // [ProducesResponseType((int)HttpStatusCode.NoContent)]
-    // [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    // public ActionResult Delete(long id)
-    // {
-    //     if (tagService.Delete(id))
-    //     {
-    //         return NoContent();
-    //     }
-    //
-    //     return NotFound();
-    // }
+    [HttpDelete("{id:long}")]
+    [ProducesResponseType((int)HttpStatusCode.NoContent)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    public async Task<IActionResult> Delete(long id)
+    {
+        await tagService.DeleteAsync(id);
+        
+        return NoContent();
+    }
 }

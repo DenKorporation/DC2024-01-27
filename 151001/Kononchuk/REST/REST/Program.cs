@@ -1,18 +1,18 @@
 using Asp.Versioning;
 using FluentValidation;
-using Microsoft.EntityFrameworkCore;
-using REST.Data;
 using REST.Models.Entities;
 using REST.Repositories.Implementations.Memory;
 using REST.Repositories.Interfaces;
 using REST.Services.Implementations;
 using REST.Services.Interfaces;
+using REST.Utilities.ExceptionHandlers;
 using REST.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 // builder.Services.AddDbContext<AppDbContext>(opt =>
 //     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -56,16 +56,18 @@ if (bool.Parse(builder.Configuration["UseInMemoryRepositories"] ?? "true"))
     builder.Services.AddSingleton<INoteRepository<long>, NoteRepository>();
     builder.Services.AddSingleton<ITagRepository<long>, TagRepository>();
 }
-else
-{
-    // builder.Services.AddSingleton<IRepository<long, Editor>, EditorRepository>();
-    // builder.Services.AddSingleton<IRepository<long, Issue>, IssueRepository>();
-    // builder.Services.AddSingleton<IRepository<long, Note>, NoteRepository>();
-    // builder.Services.AddSingleton<IRepository<long, Tag>, TagRepository>();
-    // builder.Services.AddSingleton<IIssueTagRepository<long>, IssueTagRepository>();
-}
+// else
+// {
+//     // builder.Services.AddSingleton<IRepository<long, Editor>, EditorRepository>();
+//     // builder.Services.AddSingleton<IRepository<long, Issue>, IssueRepository>();
+//     // builder.Services.AddSingleton<IRepository<long, Note>, NoteRepository>();
+//     // builder.Services.AddSingleton<IRepository<long, Tag>, TagRepository>();
+//     // builder.Services.AddSingleton<IIssueTagRepository<long>, IssueTagRepository>();
+// }
 
 var app = builder.Build();
+
+app.UseExceptionHandler(_ => { });
 
 if (app.Environment.IsDevelopment())
 {
@@ -76,3 +78,5 @@ if (app.Environment.IsDevelopment())
 app.MapControllers();
 
 app.Run();
+
+public partial class Program;

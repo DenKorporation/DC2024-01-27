@@ -14,18 +14,18 @@ public class NoteController(INoteService noteService) : Controller
 {
     [HttpPost]
     [ProducesResponseType(typeof(NoteResponseDto), (int)HttpStatusCode.Created)]
-    public ActionResult Create([FromBody] NoteRequestDto dto)
+    public async Task<IActionResult> Create([FromBody] NoteRequestDto dto)
     {
-        var note = noteService.Create(dto);
+        var note = await noteService.CreateAsync(dto);
 
         return CreatedAtAction(null, note);
     }
 
     [HttpGet]
     [ProducesResponseType(typeof(List<NoteResponseDto>), (int)HttpStatusCode.OK)]
-    public ActionResult GetAll()
+    public async Task<IActionResult> GetAll()
     {
-        var notes = noteService.GetAll();
+        var notes = await noteService.GetAllAsync();
 
         return Ok(notes);
     }
@@ -33,44 +33,29 @@ public class NoteController(INoteService noteService) : Controller
     [HttpGet("{id:long}")]
     [ProducesResponseType(typeof(NoteResponseDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult GetById(long id)
+    public async Task<IActionResult> GetById(long id)
     {
-        var note = noteService.GetById(id);
+        var note = await noteService.GetByIdAsync(id);
 
-        if (note is not null)
-        {
-            return Ok(note);
-        }
-
-        return NotFound();
+        return Ok(note);
     }
 
     [HttpPut]
     [ProducesResponseType(typeof(NoteResponseDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult Update([FromBody] NoteRequestDto dto)
+    public async Task<IActionResult> Update([FromBody] NoteRequestDto dto)
     {
-        var note = noteService.Update(dto.Id, dto);
+        var note = await noteService.UpdateAsync(dto.Id, dto);
 
-        if (note is not null)
-        {
-            return Ok(note);
-        }
-
-        return NotFound();
+        return Ok(note);
     }
 
-    // TODO update this for new logic
-    // [HttpDelete("{id:long}")]
-    // [ProducesResponseType((int)HttpStatusCode.NoContent)]
-    // [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    // public ActionResult Delete(long id)
-    // {
-    //     if (noteService.Delete(id))
-    //     {
-    //         return NoContent();
-    //     }
-    //
-    //     return NotFound();
-    // }
+    [HttpDelete("{id:long}")]
+    [ProducesResponseType((int)HttpStatusCode.NoContent)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    public async Task<IActionResult> Delete(long id)
+    {
+        await noteService.DeleteAsync(id);
+        return NoContent();
+    }
 }

@@ -14,18 +14,18 @@ public class IssueController(IIssueService issueService) : Controller
 {
     [HttpPost]
     [ProducesResponseType(typeof(IssueResponseDto), (int)HttpStatusCode.Created)]
-    public ActionResult Create([FromBody] IssueRequestDto dto)
+    public async Task<IActionResult> Create([FromBody] IssueRequestDto dto)
     {
-        var issue = issueService.Create(dto);
+        var issue = await issueService.CreateAsync(dto);
 
         return CreatedAtAction(null, issue);
     }
 
     [HttpGet]
     [ProducesResponseType(typeof(List<IssueResponseDto>), (int)HttpStatusCode.OK)]
-    public ActionResult GetAll()
+    public async Task<IActionResult> GetAll()
     {
-        var issues = issueService.GetAll();
+        var issues = await issueService.GetAllAsync();
 
         return Ok(issues);
     }
@@ -33,43 +33,28 @@ public class IssueController(IIssueService issueService) : Controller
     [HttpGet("{id:long}")]
     [ProducesResponseType(typeof(IssueResponseDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult GetById(long id)
+    public async Task<IActionResult> GetById(long id)
     {
-        var issue = issueService.GetById(id);
+        var issue = await issueService.GetByIdAsync(id);
 
-        if (issue is not null)
-        {
-            return Ok(issue);
-        }
-
-        return NotFound();
+        return Ok(issue);
     }
 
     [HttpPut]
     [ProducesResponseType(typeof(IssueResponseDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public ActionResult Update([FromBody] IssueRequestDto dto)
+    public async Task<IActionResult> Update([FromBody] IssueRequestDto dto)
     {
-        var issue = issueService.Update(dto.Id, dto);
-
-        if (issue is not null)
-        {
-            return Ok(issue);
-        }
-
-        return NotFound();
+        var issue = await issueService.UpdateAsync(dto.Id, dto);
+        return Ok(issue);
     }
-    // TODO update this for new logic
-    // [HttpDelete("{id:long}")]
-    // [ProducesResponseType((int)HttpStatusCode.NoContent)]
-    // [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    // public ActionResult Delete(long id)
-    // {
-    //     if (issueService.Delete(id))
-    //     {
-    //         return NoContent();
-    //     }
-    //
-    //     return NotFound();
-    // }
+
+    [HttpDelete("{id:long}")]
+    [ProducesResponseType((int)HttpStatusCode.NoContent)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    public async Task<IActionResult> Delete(long id)
+    {
+        await issueService.DeleteAsync(id);
+        return NoContent();
+    }
 }
