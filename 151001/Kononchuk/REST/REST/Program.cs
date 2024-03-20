@@ -1,5 +1,7 @@
 using Asp.Versioning;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+using REST.Data;
 using REST.Models.Entities;
 using REST.Repositories.Implementations.Memory;
 using REST.Repositories.Interfaces;
@@ -14,8 +16,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
-// builder.Services.AddDbContext<AppDbContext>(opt =>
-//     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<AppDbContext>(opt =>
+    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
