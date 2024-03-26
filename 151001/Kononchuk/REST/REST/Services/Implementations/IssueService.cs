@@ -29,9 +29,6 @@ public class IssueService(
 
         var createdIssue = await issueRepository.AddAsync(issue);
 
-        createdIssue.Created = DateTime.Now;
-        createdIssue.Modified = issue.Created;
-
         return mapper.Map<IssueResponseDto>(createdIssue);
     }
 
@@ -60,8 +57,6 @@ public class IssueService(
         }
 
         var updatedIssue = await issueRepository.UpdateAsync(id, issue);
-
-        updatedIssue.Modified = DateTime.Now;
 
         return mapper.Map<IssueResponseDto>(updatedIssue);
     }

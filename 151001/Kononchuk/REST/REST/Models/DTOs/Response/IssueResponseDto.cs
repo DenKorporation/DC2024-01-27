@@ -6,6 +6,6 @@ public class IssueResponseDto
     public long? EditorId { get; set; }
     public string Title { get; set; }
     public string? Content { get; set; }
-    public DateTime? Created { get; set; }
-    public DateTime? Modified { get; set; }
+    public DateTimeOffset? Created { get; set; }
+    public DateTimeOffset? Modified { get; set; }
 }

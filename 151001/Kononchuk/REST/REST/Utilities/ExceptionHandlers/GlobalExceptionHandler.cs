@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Diagnostics;
 using REST.Models.DTOs.Response;
 using REST.Utilities.Exceptions;
 
 namespace REST.Utilities.ExceptionHandlers;
 
-public class GlobalExceptionHandler : IExceptionHandler
+public class GlobalExceptionHandler(IMapper mapper) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception,
         CancellationToken cancellationToken)
@@ -15,24 +16,19 @@ public class GlobalExceptionHandler : IExceptionHandler
         {
             case ResourceNotFoundException notFoundException:
                 code = 404;
-                errorMessage = new ErrorResponseDto()
-                {
-                    ErrorMessage = notFoundException.Message, ErrorCode = notFoundException.Code
-                };
+                errorMessage = mapper.Map<ErrorResponseDto>(notFoundException);
                 break;
             case ValidationException validationException:
                 code = 400;
-                errorMessage = new ErrorResponseDto()
-                {
-                    ErrorMessage = validationException.Message, ErrorCode = validationException.Code
-                };
+                errorMessage = mapper.Map<ErrorResponseDto>(validationException);
                 break;
             case UniqueConstraintException uniqueConstraintException:
-                code = 409;
-                errorMessage = new ErrorResponseDto()
-                {
-                    ErrorMessage = uniqueConstraintException.Message, ErrorCode = uniqueConstraintException.Code
-                };
+                code = 403;
+                errorMessage = mapper.Map<ErrorResponseDto>(uniqueConstraintException);
+                break;
+            case AssociationException associationException:
+                code = 403;
+                errorMessage = mapper.Map<ErrorResponseDto>(associationException);
                 break;
             default:
                 return false;

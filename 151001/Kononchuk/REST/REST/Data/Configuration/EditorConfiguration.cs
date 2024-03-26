@@ -10,8 +10,8 @@ public class EditorConfiguration : IEntityTypeConfiguration<Editor>
     {
         builder.ToTable("tblEditor").HasKey(e => e.Id);
         builder.Property(e => e.Id).HasColumnName("id");
-        builder.HasAlternateKey(e => e.Login);
 
+        builder.HasIndex(e => e.Login).IsUnique();
         builder.Property(e => e.Login).HasColumnName("login");
         builder.ToTable(e => e.HasCheckConstraint("ValidLogin", "LENGTH(login) BETWEEN 2 AND 64"));
 

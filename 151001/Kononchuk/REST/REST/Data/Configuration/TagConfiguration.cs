@@ -10,7 +10,7 @@ public class TagConfiguration : IEntityTypeConfiguration<Tag>
     {
         builder.ToTable("tblTag").HasKey(t => t.Id);
         builder.Property(t => t.Id).HasColumnName("id");
-        builder.HasAlternateKey(t => t.Name);
+        builder.HasIndex(t => t.Name).IsUnique();
 
         builder.Property(t => t.Name).HasColumnName("name");
         builder.ToTable(t => t.HasCheckConstraint("ValidName", "LENGTH(name) BETWEEN 2 AND 32"));

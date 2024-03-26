@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using REST.Data;
@@ -11,9 +12,11 @@ using REST.Data;
 namespace REST.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240320225523_AlternativeKeyHasBeenChangedToUniqueIndex")]
+    partial class AlternativeKeyHasBeenChangedToUniqueIndex
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -82,21 +85,23 @@ namespace REST.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("content");
 
-                    b.Property<DateTimeOffset>("Created")
+                    b.Property<DateTime?>("Created")
+                        .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasDefaultValueSql("Now()");
 
                     b.Property<long?>("EditorId")
                         .HasColumnType("bigint")
                         .HasColumnName("editorId");
 
-                    b.Property<DateTimeOffset>("Modified")
-                        .ValueGeneratedOnAddOrUpdate()
+                    b.Property<DateTime?>("Modified")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("modified")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasDefaultValueSql("Now()");
 
                     b.Property<string>("Title")
                         .IsRequired()

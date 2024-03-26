@@ -6,11 +6,12 @@ namespace REST.Data.Configuration;
 
 public class IssueConfiguration : IEntityTypeConfiguration<Issue>
 {
+    //TODO Properly handle with created and modified fields
     public void Configure(EntityTypeBuilder<Issue> builder)
     {
         builder.ToTable("tblIssue").HasKey(i => i.Id);
         builder.Property(i => i.Id).HasColumnName("id");
-        builder.HasAlternateKey(i => i.Title);
+        builder.HasIndex(i => i.Title).IsUnique();
 
         builder.Property(i => i.EditorId).HasColumnName("editorId");
         builder.HasOne(i => i.Editor)
@@ -24,7 +25,10 @@ public class IssueConfiguration : IEntityTypeConfiguration<Issue>
         builder.Property(i => i.Content).HasColumnName("content").IsRequired();
         builder.ToTable(i => i.HasCheckConstraint("ValidContent", "LENGTH(content) BETWEEN 4 AND 2048"));
 
-        builder.Property(i => i.Created).HasColumnName("created").IsRequired().HasDefaultValueSql("Now()");
-        builder.Property(i => i.Modified).HasColumnName("modified").IsRequired().HasDefaultValueSql("Now()");
+        builder.Property(i => i.Created).HasColumnName("created").IsRequired().HasDefaultValueSql("CURRENT_TIMESTAMP")
+            .ValueGeneratedOnAdd();
+
+        builder.Property(i => i.Modified).HasColumnName("modified").IsRequired()
+            .HasDefaultValueSql("CURRENT_TIMESTAMP").ValueGeneratedOnAddOrUpdate();
     }
 }

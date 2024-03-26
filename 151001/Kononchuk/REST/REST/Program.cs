@@ -1,9 +1,10 @@
 using Asp.Versioning;
+using EntityFramework.Exceptions.PostgreSQL;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using REST.Data;
 using REST.Models.Entities;
-using REST.Repositories.Implementations.Memory;
+using REST.Repositories.Implementations.EFCore;
 using REST.Repositories.Interfaces;
 using REST.Services.Implementations;
 using REST.Services.Interfaces;
@@ -17,7 +18,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")).UseExceptionProcessor());
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
@@ -51,21 +52,17 @@ builder.Services.AddTransient<AbstractValidator<Tag>, TagValidator>();
 
 // Repository Registration
 
-if (bool.Parse(builder.Configuration["UseInMemoryRepositories"] ?? "true"))
-{
-    builder.Services.AddSingleton<IEditorRepository<long>, EditorRepository>();
-    builder.Services.AddSingleton<IIssueRepository<long>, IssueRepository>();
-    builder.Services.AddSingleton<INoteRepository<long>, NoteRepository>();
-    builder.Services.AddSingleton<ITagRepository<long>, TagRepository>();
-}
-// else
-// {
-//     // builder.Services.AddSingleton<IRepository<long, Editor>, EditorRepository>();
-//     // builder.Services.AddSingleton<IRepository<long, Issue>, IssueRepository>();
-//     // builder.Services.AddSingleton<IRepository<long, Note>, NoteRepository>();
-//     // builder.Services.AddSingleton<IRepository<long, Tag>, TagRepository>();
-//     // builder.Services.AddSingleton<IIssueTagRepository<long>, IssueTagRepository>();
-// }
+// In-memory
+// builder.Services.AddSingleton<IEditorRepository<long>, EditorRepository>();
+// builder.Services.AddSingleton<IIssueRepository<long>, IssueRepository>();
+// builder.Services.AddSingleton<INoteRepository<long>, NoteRepository>();
+// builder.Services.AddSingleton<ITagRepository<long>, TagRepository>();
+
+// EF Core
+builder.Services.AddScoped<IEditorRepository<long>, EditorRepository>();
+builder.Services.AddScoped<IIssueRepository<long>, IssueRepository>();
+builder.Services.AddScoped<INoteRepository<long>, NoteRepository>();
+builder.Services.AddScoped<ITagRepository<long>, TagRepository>();
 
 var app = builder.Build();
 
