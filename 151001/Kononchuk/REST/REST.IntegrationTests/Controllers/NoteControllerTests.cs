@@ -1,197 +1,261 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
+using Bogus;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
-using REST.IntegrationTests.Helpers;
+using Microsoft.Extensions.DependencyInjection;
+using REST.Data;
+using REST.IntegrationTests.DataGenerators;
+using REST.IntegrationTests.Fixtures;
 using REST.Models.DTOs.Request;
 using REST.Models.DTOs.Response;
+using REST.Models.Entities;
 
 namespace REST.IntegrationTests.Controllers;
 
-//TODO review this after migrating to the database
-public class NoteControllerTests(RestWebApplicationFactory factory) : IClassFixture<RestWebApplicationFactory>
+[Collection("Controller Collection")]
+public class NoteControllerTests(RestWebApplicationFactory factory) : IAsyncLifetime
 {
-    // private readonly HttpClient _client = factory.CreateClient();
-    // private static readonly string BaseUrl = "api/v1.0/notes";
-    //
-    // [Fact]
-    // public async Task Create_ValidData_ReturnsOkWithCreatedNote()
-    // {
-    //     NoteRequestDto requestDto = new NoteRequestDto
-    //     {
-    //         Content = "test_create_content"
-    //     };
-    //
-    //     var response = await _client.PostAsJsonAsync(BaseUrl, requestDto);
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status201Created);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<NoteResponseDto>();
-    //     response.Should().NotBeNull();
-    //     responseDto!.Id.Should().BePositive();
-    //     responseDto.Content.Should().Be(requestDto.Content);
-    //     responseDto.IssueId.Should().Be(requestDto.IssueId);
-    // }
-    //
-    // [Fact]
-    // public async Task Create_InvalidData_ReturnsBadRequest()
-    // {
-    //     NoteRequestDto requestDto = new NoteRequestDto
-    //     {
-    //         Content = ""
-    //     };
-    //
-    //     var response = await _client.PostAsJsonAsync(BaseUrl, requestDto);
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status400BadRequest);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
-    //
-    //     responseDto!.ErrorCode.Should().Be(40001);
-    //     responseDto.ErrorMessage.Should().NotBeNull();
-    // }
-    //
-    // [Fact]
-    // public async Task GetAll_ValidState_ReturnsOkWithListOfNotes()
-    // {
-    //     var response = await _client.GetAsync(BaseUrl);
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status200OK);
-    // }
-    //
-    // [Fact]
-    // public async Task GetById_NoteNotExist_ReturnsNotFound()
-    // {
-    //     var response = await _client.GetAsync(BaseUrl + "/-1");
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status404NotFound);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
-    //
-    //     responseDto!.ErrorCode.Should().Be(40401);
-    //     responseDto.ErrorMessage.Should().NotBeNull();
-    // }
-    //
-    // [Fact]
-    // public async Task GetById_NoteExist_ReturnsExistingResult()
-    // {
-    //     NoteRequestDto requestDto = new NoteRequestDto
-    //     {
-    //         Content = "test_get_content"
-    //     };
-    //
-    //     var postResponse = await _client.PostAsJsonAsync(BaseUrl, requestDto);
-    //     var createdNote = await postResponse.Content.ReadFromJsonAsync<NoteResponseDto>();
-    //
-    //     var response = await _client.GetAsync(BaseUrl + $"/{createdNote!.Id}");
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status200OK);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<NoteResponseDto>();
-    //
-    //     responseDto!.Content.Should().Be(requestDto.Content);
-    //     responseDto.IssueId.Should().Be(requestDto.IssueId);
-    // }
-    //
-    // [Fact]
-    // public async Task Update_NoteNotExist_ReturnsNotFound()
-    // {
-    //     NoteRequestDto requestDto = new NoteRequestDto
-    //     {
-    //         Id = -1, Content = "test_update_content"
-    //     };
-    //
-    //     var response = await _client.PutAsJsonAsync(BaseUrl, requestDto);
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status404NotFound);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
-    //
-    //     responseDto!.ErrorCode.Should().Be(40402);
-    //     responseDto.ErrorMessage.Should().NotBeNull();
-    // }
-    //
-    // [Fact]
-    // public async Task Update_ValidData_ReturnsOkWithUpdatedNote()
-    // {
-    //     NoteRequestDto createDto = new NoteRequestDto
-    //     {
-    //         Content = "test_create_content"
-    //     };
-    //
-    //     NoteRequestDto updateDto = new NoteRequestDto
-    //     {
-    //         Content = "test_update_content"
-    //     };
-    //
-    //     var postResponse = await _client.PostAsJsonAsync(BaseUrl, createDto);
-    //     var createdNote = await postResponse.Content.ReadFromJsonAsync<NoteResponseDto>();
-    //     updateDto.Id = createdNote!.Id;
-    //
-    //     var response = await _client.PutAsJsonAsync(BaseUrl, updateDto);
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status200OK);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<NoteResponseDto>();
-    //     response.Should().NotBeNull();
-    //     responseDto!.Id.Should().BePositive();
-    //     responseDto.Content.Should().Be(updateDto.Content);
-    //     responseDto.IssueId.Should().Be(updateDto.IssueId);
-    // }
-    //
-    // [Fact]
-    // public async Task Update_InvalidData_ReturnsBadRequest()
-    // {
-    //     NoteRequestDto createDto = new NoteRequestDto
-    //     {
-    //         Content = "test_create_content"
-    //     };
-    //
-    //     NoteRequestDto updateDto = new NoteRequestDto
-    //     {
-    //         Content = ""
-    //     };
-    //
-    //     var postResponse = await _client.PostAsJsonAsync(BaseUrl, createDto);
-    //     var createdNote = await postResponse.Content.ReadFromJsonAsync<NoteResponseDto>();
-    //     updateDto.Id = createdNote!.Id;
-    //
-    //     var response = await _client.PutAsJsonAsync(BaseUrl, updateDto);
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status400BadRequest);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
-    //
-    //     responseDto!.ErrorCode.Should().Be(40002);
-    //     responseDto.ErrorMessage.Should().NotBeNull();
-    // }
-    //
-    // [Fact]
-    // public async Task Delete_NoteNotExist_ReturnsNotFound()
-    // {
-    //     var response = await _client.DeleteAsync(BaseUrl + "/-1");
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status404NotFound);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
-    //
-    //     responseDto!.ErrorCode.Should().Be(40403);
-    //     responseDto.ErrorMessage.Should().NotBeNull();
-    // }
-    //
-    // [Fact]
-    // public async Task Delete_NoteExist_ReturnsNoContent()
-    // {
-    //     NoteRequestDto requestDto = new NoteRequestDto
-    //     {
-    //         Content = "test_delete_content"
-    //     };
-    //
-    //     var postResponse = await _client.PostAsJsonAsync(BaseUrl, requestDto);
-    //     var createdNote = await postResponse.Content.ReadFromJsonAsync<NoteResponseDto>();
-    //
-    //     var response = await _client.DeleteAsync(BaseUrl + $"/{createdNote!.Id}");
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status204NoContent);
-    // }
+    private readonly AppDbContext _dbContext =
+        factory.Services.CreateScope().ServiceProvider.GetRequiredService<AppDbContext>();
+
+    private readonly Func<Task> _resetDatabase = factory.ResetDatabase;
+    private readonly HttpClient _client = factory.HttpClient;
+    private const string BasePath = "notes";
+
+    private readonly Faker<NoteRequestDto> _noteRequestGenerator = NoteGenerator.CreateNoteRequestDtoFaker();
+    private readonly Faker<Note> _noteGenerator = NoteGenerator.CreateNoteFaker();
+
+    private Issue PrepareDb()
+    {
+        Issue issue = IssueGenerator.CreateIssueFaker().Generate();
+        _dbContext.Add(issue);
+        _dbContext.SaveChanges();
+
+        return issue;
+    }
+
+    [Fact]
+    public async Task Create_ValidData_ReturnsCreatedWithCreatedNote()
+    {
+        Issue issue = PrepareDb();
+        NoteRequestDto requestDto = _noteRequestGenerator.Clone()
+            .RuleFor(n => n.IssueId, issue.Id).Generate();
+
+
+        var response = await _client.PostAsJsonAsync(BasePath, requestDto);
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status201Created);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<NoteResponseDto>();
+        responseDto!.Id.Should().BePositive();
+        responseDto.Should().NotBeNull().Should().BeEquivalentTo(requestDto,
+            options => options.ExcludingMissingMembers()
+                .Excluding(n => n.Id));
+    }
+
+    [Fact]
+    public async Task Create_InvalidData_ReturnsBadRequest()
+    {
+        Issue issue = PrepareDb();
+        NoteRequestDto requestDto = _noteRequestGenerator.Clone()
+            .RuleFor(n => n.IssueId, issue.Id)
+            .RuleFor(n => n.Content, "").Generate();
+
+
+        var response = await _client.PostAsJsonAsync(BasePath, requestDto);
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status400BadRequest);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40001);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+    
+    [Fact]
+    public async Task Create_IssueForIssueIdNotExist_ReturnsForbidden()
+    {
+        NoteRequestDto requestDto = _noteRequestGenerator.Clone()
+            .RuleFor(n => n.IssueId, 1).Generate();
+
+
+        var response = await _client.PostAsJsonAsync(BasePath, requestDto);
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status403Forbidden);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40311);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetAll_ValidState_ReturnsOkWithListOfNotes()
+    {
+        var response = await _client.GetAsync(BasePath);
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status200OK);
+        var responseDto = await response.Content.ReadFromJsonAsync<List<NoteResponseDto>>();
+        responseDto.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetById_NoteNotExist_ReturnsNotFound()
+    {
+        var response = await _client.GetAsync($"{BasePath}/-1");
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status404NotFound);
+
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+
+        responseDto!.ErrorCode.Should().Be(40401);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetById_NoteExist_ReturnsExistingResult()
+    {
+        Issue issue = PrepareDb();
+        Note note = _noteGenerator.Clone()
+            .RuleFor(n => n.IssueId, issue.Id).Generate();
+        _dbContext.Add(note);
+        await _dbContext.SaveChangesAsync();
+
+
+        var response = await _client.GetAsync($"{BasePath}/{note.Id}");
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status200OK);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<NoteResponseDto>();
+        responseDto.Should().NotBeNull().Should().BeEquivalentTo(note,
+            options => options.ExcludingMissingMembers());
+    }
+
+    [Fact]
+    public async Task Update_NoteNotExist_ReturnsNotFound()
+    {
+        NoteRequestDto requestDto = _noteRequestGenerator.Clone()
+            .RuleFor(n => n.Id, -1).Generate();
+
+        
+        var response = await _client.PutAsJsonAsync(BasePath, requestDto);
+
+        
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status404NotFound);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40402);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Update_ValidData_ReturnsOkWithUpdatedNote()
+    {
+        Issue issue = PrepareDb();
+        Note createNote = _noteGenerator.Clone()
+            .RuleFor(n => n.IssueId, issue.Id).Generate();
+        _dbContext.Add(createNote);
+        await _dbContext.SaveChangesAsync();
+
+        NoteRequestDto updateDto = _noteRequestGenerator.Clone()
+            .RuleFor(n => n.Id, createNote.Id)
+            .RuleFor(n => n.IssueId, issue.Id).Generate();
+        
+
+        var response = await _client.PutAsJsonAsync(BasePath, updateDto);
+
+        
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status200OK);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<NoteResponseDto>();
+        responseDto.Should().NotBeNull().Should().BeEquivalentTo(updateDto,
+            options => options.ExcludingMissingMembers());
+    }
+
+    [Fact]
+    public async Task Update_InvalidData_ReturnsBadRequest()
+    {
+        Issue issue = PrepareDb();
+        Note createNote = _noteGenerator.Clone()
+            .RuleFor(n => n.IssueId, issue.Id).Generate();
+        _dbContext.Add(createNote);
+        await _dbContext.SaveChangesAsync();
+
+        NoteRequestDto updateDto = _noteRequestGenerator.Clone()
+            .RuleFor(n => n.Id, createNote.Id)
+            .RuleFor(n => n.Content, "").Generate();
+
+        
+        var response = await _client.PutAsJsonAsync(BasePath, updateDto);
+
+        
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status400BadRequest);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40002);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Update_IssueForIssueIdNotExist_ReturnsForbidden()
+    {
+        Issue issue = PrepareDb();
+        Note createNote = _noteGenerator.Clone()
+            .RuleFor(n => n.IssueId, issue.Id).Generate();
+        _dbContext.Add(createNote);
+        await _dbContext.SaveChangesAsync();
+
+        NoteRequestDto updateDto = _noteRequestGenerator.Clone()
+            .RuleFor(n => n.Id, createNote.Id)
+            .RuleFor(n => n.IssueId, issue.Id + 1).Generate();
+
+
+        var response = await _client.PutAsJsonAsync(BasePath, updateDto);
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status403Forbidden);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40312);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+    
+    [Fact]
+    public async Task Delete_NoteNotExist_ReturnsNotFound()
+    {
+        var response = await _client.DeleteAsync($"{BasePath}/-1");
+
+        
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status404NotFound);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40403);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Delete_NoteExist_ReturnsNoContent()
+    {
+        Issue issue = PrepareDb();
+        Note createNote = _noteGenerator.Clone()
+            .RuleFor(n => n.IssueId, issue.Id).Generate();
+        _dbContext.Add(createNote);
+        await _dbContext.SaveChangesAsync();
+
+        
+        var response = await _client.DeleteAsync($"{BasePath}/{createNote.Id}");
+
+        
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status204NoContent);
+    }
+    
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public async Task DisposeAsync() => await _resetDatabase();
 }

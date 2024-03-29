@@ -1,200 +1,276 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
+using Bogus;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
-using REST.IntegrationTests.Helpers;
+using Microsoft.Extensions.DependencyInjection;
+using REST.Data;
+using REST.IntegrationTests.DataGenerators;
+using REST.IntegrationTests.Fixtures;
 using REST.Models.DTOs.Request;
 using REST.Models.DTOs.Response;
+using REST.Models.Entities;
 
 namespace REST.IntegrationTests.Controllers;
 
-//TODO review this after migrating to the database
-public class IssueControllerTests(RestWebApplicationFactory factory) : IClassFixture<RestWebApplicationFactory>
+[Collection("Controller Collection")]
+public class IssueControllerTests(RestWebApplicationFactory factory) : IAsyncLifetime
 {
-    // private readonly HttpClient _client = factory.CreateClient();
-    // private static readonly string BaseUrl = "api/v1.0/issues";
-    //
-    // [Fact]
-    // public async Task Create_ValidData_ReturnsOkWithCreatedIssue()
-    // {
-    //     IssueRequestDto requestDto = new IssueRequestDto
-    //     {
-    //         Content = "test_issue_create_content", Title = "test_create_title"
-    //     };
-    //
-    //     var response = await _client.PostAsJsonAsync(BaseUrl, requestDto);
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status201Created);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<IssueResponseDto>();
-    //     response.Should().NotBeNull();
-    //     responseDto!.Id.Should().BePositive();
-    //     responseDto.Content.Should().Be(requestDto.Content);
-    //     responseDto.Title.Should().Be(requestDto.Title);
-    //     responseDto.EditorId.Should().Be(requestDto.EditorId);
-    // }
-    //
-    // [Fact]
-    // public async Task Create_InvalidData_ReturnsBadRequest()
-    // {
-    //     IssueRequestDto requestDto = new IssueRequestDto
-    //     {
-    //         Content = "test_issue_create_content", Title = ""
-    //     };
-    //
-    //     var response = await _client.PostAsJsonAsync(BaseUrl, requestDto);
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status400BadRequest);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
-    //
-    //     responseDto!.ErrorCode.Should().Be(40001);
-    //     responseDto.ErrorMessage.Should().NotBeNull();
-    // }
-    //
-    // [Fact]
-    // public async Task GetAll_ValidState_ReturnsOkWithListOfIssues()
-    // {
-    //     var response = await _client.GetAsync(BaseUrl);
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status200OK);
-    // }
-    //
-    // [Fact]
-    // public async Task GetById_IssueNotExist_ReturnsNotFound()
-    // {
-    //     var response = await _client.GetAsync(BaseUrl + "/-1");
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status404NotFound);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
-    //
-    //     responseDto!.ErrorCode.Should().Be(40401);
-    //     responseDto.ErrorMessage.Should().NotBeNull();
-    // }
-    //
-    // [Fact]
-    // public async Task GetById_IssueExist_ReturnsExistingResult()
-    // {
-    //     IssueRequestDto requestDto = new IssueRequestDto
-    //     {
-    //         Content = "test_issue_get_content", Title = "test_get_title"
-    //     };
-    //
-    //     var postResponse = await _client.PostAsJsonAsync(BaseUrl, requestDto);
-    //     var createdIssue = await postResponse.Content.ReadFromJsonAsync<IssueResponseDto>();
-    //
-    //     var response = await _client.GetAsync(BaseUrl + $"/{createdIssue!.Id}");
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status200OK);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<IssueResponseDto>();
-    //
-    //     responseDto!.Content.Should().Be(requestDto.Content);
-    //     responseDto.Title.Should().Be(requestDto.Title);
-    //     responseDto.EditorId.Should().Be(requestDto.EditorId);
-    // }
-    //
-    // [Fact]
-    // public async Task Update_IssueNotExist_ReturnsNotFound()
-    // {
-    //     IssueRequestDto requestDto = new IssueRequestDto
-    //     {
-    //         Id = -1, Content = "test_issue_update_content", Title = "test_update_title"
-    //     };
-    //
-    //     var response = await _client.PutAsJsonAsync(BaseUrl, requestDto);
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status404NotFound);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
-    //
-    //     responseDto!.ErrorCode.Should().Be(40402);
-    //     responseDto.ErrorMessage.Should().NotBeNull();
-    // }
-    //
-    // [Fact]
-    // public async Task Update_ValidData_ReturnsOkWithUpdatedIssue()
-    // {
-    //     IssueRequestDto createDto = new IssueRequestDto
-    //     {
-    //         Content = "test_issue_update_created_content", Title = "test_create_title"
-    //     };
-    //
-    //     IssueRequestDto updateDto = new IssueRequestDto
-    //     {
-    //         Content = "test_issue_update_updated_content", Title = "test_update_title"
-    //     };
-    //
-    //     var postResponse = await _client.PostAsJsonAsync(BaseUrl, createDto);
-    //     var createdIssue = await postResponse.Content.ReadFromJsonAsync<IssueResponseDto>();
-    //     updateDto.Id = createdIssue!.Id;
-    //
-    //     var response = await _client.PutAsJsonAsync(BaseUrl, updateDto);
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status200OK);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<IssueResponseDto>();
-    //     response.Should().NotBeNull();
-    //     responseDto!.Id.Should().BePositive();
-    //     responseDto.Content.Should().Be(updateDto.Content);
-    //     responseDto.Title.Should().Be(updateDto.Title);
-    //     responseDto.EditorId.Should().Be(updateDto.EditorId);
-    // }
-    //
-    // [Fact]
-    // public async Task Update_InvalidData_ReturnsBadRequest()
-    // {
-    //     IssueRequestDto createDto = new IssueRequestDto
-    //     {
-    //         Content = "test_issue_update_created_content", Title = "test_create_title"
-    //     };
-    //
-    //     IssueRequestDto updateDto = new IssueRequestDto
-    //     {
-    //         Content = "test_issue_update_updated_content", Title = ""
-    //     };
-    //
-    //     var postResponse = await _client.PostAsJsonAsync(BaseUrl, createDto);
-    //     var createdIssue = await postResponse.Content.ReadFromJsonAsync<IssueResponseDto>();
-    //     updateDto.Id = createdIssue!.Id;
-    //
-    //     var response = await _client.PutAsJsonAsync(BaseUrl, updateDto);
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status400BadRequest);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
-    //
-    //     responseDto!.ErrorCode.Should().Be(40002);
-    //     responseDto.ErrorMessage.Should().NotBeNull();
-    // }
-    //
-    // [Fact]
-    // public async Task Delete_IssueNotExist_ReturnsNotFound()
-    // {
-    //     var response = await _client.DeleteAsync(BaseUrl + "/-1");
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status404NotFound);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
-    //
-    //     responseDto!.ErrorCode.Should().Be(40403);
-    //     responseDto.ErrorMessage.Should().NotBeNull();
-    // }
-    //
-    // [Fact]
-    // public async Task Delete_IssueExist_ReturnsNoContent()
-    // {
-    //     IssueRequestDto requestDto = new IssueRequestDto
-    //     {
-    //         Content = "test_delete_content", Title = "test_delete_title"
-    //     };
-    //
-    //     var postResponse = await _client.PostAsJsonAsync(BaseUrl, requestDto);
-    //     var createdIssue = await postResponse.Content.ReadFromJsonAsync<IssueResponseDto>();
-    //
-    //     var response = await _client.DeleteAsync(BaseUrl + $"/{createdIssue!.Id}");
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status204NoContent);
-    // }
+    private readonly AppDbContext _dbContext =
+        factory.Services.CreateScope().ServiceProvider.GetRequiredService<AppDbContext>();
+
+    private readonly Func<Task> _resetDatabase = factory.ResetDatabase;
+    private readonly HttpClient _client = factory.HttpClient;
+    private const string BasePath = "issues";
+
+    private readonly Faker<IssueRequestDto> _issueRequestGenerator = IssueGenerator.CreateIssueRequestDtoFaker();
+    private readonly Faker<Issue> _issueGenerator = IssueGenerator.CreateIssueFaker();
+
+    [Fact]
+    public async Task Create_ValidData_ReturnsCreatedWithCreatedIssue()
+    {
+        IssueRequestDto requestDto = _issueRequestGenerator.Generate();
+
+
+        var response = await _client.PostAsJsonAsync(BasePath, requestDto);
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status201Created);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<IssueResponseDto>();
+        responseDto!.Id.Should().BePositive();
+        responseDto.Should().NotBeNull().Should().BeEquivalentTo(requestDto,
+            options => options.ExcludingMissingMembers()
+                .Excluding(i => i.Id));
+    }
+    
+    [Fact]
+    public async Task Create_NonUniqueValue_ReturnsForbiddenStatus()
+    {
+        Issue createIssue = _issueGenerator.Generate();
+        _dbContext.Add(createIssue);
+        await _dbContext.SaveChangesAsync();
+        IssueRequestDto requestDto = _issueRequestGenerator.Clone()
+            .RuleFor(i => i.Title, createIssue.Title).Generate();
+
+        
+        var response = await _client.PostAsJsonAsync(BasePath, requestDto);
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status403Forbidden);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40301);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Create_InvalidData_ReturnsBadRequest()
+    {
+        IssueRequestDto requestDto = _issueRequestGenerator.Clone().RuleFor(i => i.Title, "").Generate();
+
+
+        var response = await _client.PostAsJsonAsync(BasePath, requestDto);
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status400BadRequest);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40001);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+    
+    [Fact]
+    public async Task Create_EditorForEditorIdNotExist_ReturnsForbidden()
+    {
+        IssueRequestDto requestDto = _issueRequestGenerator.Clone()
+            .RuleFor(i => i.EditorId, 1).Generate();
+
+
+        var response = await _client.PostAsJsonAsync(BasePath, requestDto);
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status403Forbidden);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40311);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetAll_ValidState_ReturnsOkWithListOfIssues()
+    {
+        var response = await _client.GetAsync(BasePath);
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status200OK);
+        var responseDto = await response.Content.ReadFromJsonAsync<List<IssueResponseDto>>();
+        responseDto.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetById_IssueNotExist_ReturnsNotFound()
+    {
+        var response = await _client.GetAsync($"{BasePath}/-1");
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status404NotFound);
+
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+
+        responseDto!.ErrorCode.Should().Be(40401);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetById_IssueExist_ReturnsExistingResult()
+    {
+        Issue issue = _issueGenerator.Generate();
+        _dbContext.Add(issue);
+        await _dbContext.SaveChangesAsync();
+
+
+        var response = await _client.GetAsync($"{BasePath}/{issue.Id}");
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status200OK);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<IssueResponseDto>();
+        responseDto.Should().NotBeNull().Should().BeEquivalentTo(issue,
+            options => options.ExcludingMissingMembers());
+    }
+
+    [Fact]
+    public async Task Update_IssueNotExist_ReturnsNotFound()
+    {
+        IssueRequestDto requestDto = _issueRequestGenerator.Clone()
+            .RuleFor(i => i.Id, -1).Generate();
+
+        
+        var response = await _client.PutAsJsonAsync(BasePath, requestDto);
+
+        
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status404NotFound);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40402);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Update_ValidData_ReturnsOkWithUpdatedIssue()
+    {
+        Issue createIssue = _issueGenerator.Generate();
+        _dbContext.Add(createIssue);
+        await _dbContext.SaveChangesAsync();
+
+        IssueRequestDto updateDto = _issueRequestGenerator.Clone()
+            .RuleFor(i => i.Id, createIssue.Id).Generate();
+        
+
+        var response = await _client.PutAsJsonAsync(BasePath, updateDto);
+
+        
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status200OK);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<IssueResponseDto>();
+        responseDto.Should().NotBeNull().Should().BeEquivalentTo(updateDto,
+            options => options.ExcludingMissingMembers());
+    }
+    
+    [Fact]
+    public async Task Update_NonUniqueValue_ReturnsForbiddenStatus()
+    {
+        Issue createIssue = _issueGenerator.Generate();
+        _dbContext.Add(createIssue);
+        await _dbContext.SaveChangesAsync();
+        IssueRequestDto updateDto = _issueRequestGenerator.Clone()
+            .RuleFor(i => i.Title, createIssue.Title).Generate();
+
+        
+        var response = await _client.PutAsJsonAsync(BasePath, updateDto);
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status403Forbidden);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40302);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Update_InvalidData_ReturnsBadRequest()
+    {
+        Issue createIssue = _issueGenerator.Generate();
+        _dbContext.Add(createIssue);
+        await _dbContext.SaveChangesAsync();
+
+        IssueRequestDto updateDto = _issueRequestGenerator.Clone()
+            .RuleFor(i => i.Id, createIssue.Id)
+            .RuleFor(i => i.Title, "").Generate();
+
+        
+        var response = await _client.PutAsJsonAsync(BasePath, updateDto);
+
+        
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status400BadRequest);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40002);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Update_EditorForEditorIdNotExist_ReturnsForbidden()
+    {
+        Issue createIssue = _issueGenerator.Generate();
+        _dbContext.Add(createIssue);
+        await _dbContext.SaveChangesAsync();
+
+        IssueRequestDto updateDto = _issueRequestGenerator.Clone()
+            .RuleFor(i => i.Id, createIssue.Id)
+            .RuleFor(i => i.EditorId, 1).Generate();
+
+
+        var response = await _client.PutAsJsonAsync(BasePath, updateDto);
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status403Forbidden);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40312);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+    
+    [Fact]
+    public async Task Delete_IssueNotExist_ReturnsNotFound()
+    {
+        var response = await _client.DeleteAsync($"{BasePath}/-1");
+
+        
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status404NotFound);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40403);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Delete_IssueExist_ReturnsNoContent()
+    {
+        Issue createIssue = _issueGenerator.Generate();
+        _dbContext.Add(createIssue);
+        await _dbContext.SaveChangesAsync();
+
+        
+        var response = await _client.DeleteAsync($"{BasePath}/{createIssue.Id}");
+
+        
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status204NoContent);
+    }
+
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public async Task DisposeAsync() => await _resetDatabase();
 }

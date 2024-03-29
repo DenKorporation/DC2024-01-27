@@ -1,209 +1,240 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
+using Bogus;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
-using REST.IntegrationTests.Helpers;
+using Microsoft.Extensions.DependencyInjection;
+using REST.Data;
+using REST.IntegrationTests.DataGenerators;
+using REST.IntegrationTests.Fixtures;
 using REST.Models.DTOs.Request;
 using REST.Models.DTOs.Response;
+using REST.Models.Entities;
 
 namespace REST.IntegrationTests.Controllers;
 
-//TODO review this after migrating to the database
-public class EditorControllerTests(RestWebApplicationFactory factory) : IClassFixture<RestWebApplicationFactory>
+[Collection("Controller Collection")]
+public class EditorControllerTests(RestWebApplicationFactory factory) : IAsyncLifetime
 {
-    // private readonly HttpClient _client = factory.CreateClient();
-    // private static readonly string BaseUrl = "api/v1.0/editors";
-    //
-    // [Fact]
-    // public async Task Create_ValidData_ReturnsOkWithCreatedEditor()
-    // {
-    //     EditorRequestDto requestDto = new EditorRequestDto
-    //     {
-    //         Login = "test_editor_create_login", Password = "qwerty12", FirstName = "test_create_firstname",
-    //         LastName = "test_create_lastname"
-    //     };
-    //
-    //     var response = await _client.PostAsJsonAsync(BaseUrl, requestDto);
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status201Created);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<EditorResponseDto>();
-    //     response.Should().NotBeNull();
-    //     responseDto!.Id.Should().BePositive();
-    //     responseDto.FirstName.Should().Be(requestDto.FirstName);
-    //     responseDto.LastName.Should().Be(requestDto.LastName);
-    //     responseDto.Login.Should().Be(requestDto.Login);
-    // }
-    //
-    // [Fact]
-    // public async Task Create_InvalidData_ReturnsBadRequest()
-    // {
-    //     EditorRequestDto requestDto = new EditorRequestDto
-    //     {
-    //         Login = "test_editor_create_login", Password = "", FirstName = "test_create_firstname",
-    //         LastName = "test_create_lastname"
-    //     };
-    //
-    //     var response = await _client.PostAsJsonAsync(BaseUrl, requestDto);
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status400BadRequest);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
-    //
-    //     responseDto!.ErrorCode.Should().Be(40001);
-    //     responseDto.ErrorMessage.Should().NotBeNull();
-    // }
-    //
-    // [Fact]
-    // public async Task GetAll_ValidState_ReturnsOkWithListOfEditors()
-    // {
-    //     var response = await _client.GetAsync(BaseUrl);
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status200OK);
-    // }
-    //
-    // [Fact]
-    // public async Task GetById_EditorNotExist_ReturnsNotFound()
-    // {
-    //     var response = await _client.GetAsync(BaseUrl + "/-1");
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status404NotFound);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
-    //
-    //     responseDto!.ErrorCode.Should().Be(40401);
-    //     responseDto.ErrorMessage.Should().NotBeNull();
-    // }
-    //
-    // [Fact]
-    // public async Task GetById_EditorExist_ReturnsExistingResult()
-    // {
-    //     EditorRequestDto requestDto = new EditorRequestDto
-    //     {
-    //         Login = "test_editor_get_login", Password = "qwerty12", FirstName = "test_get_firstname",
-    //         LastName = "test_get_lastname"
-    //     };
-    //
-    //     var postResponse = await _client.PostAsJsonAsync(BaseUrl, requestDto);
-    //     var createdEditor = await postResponse.Content.ReadFromJsonAsync<EditorResponseDto>();
-    //
-    //     var response = await _client.GetAsync(BaseUrl + $"/{createdEditor!.Id}");
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status200OK);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<EditorResponseDto>();
-    //
-    //     responseDto!.FirstName.Should().Be(requestDto.FirstName);
-    //     responseDto.LastName.Should().Be(requestDto.LastName);
-    //     responseDto.Login.Should().Be(requestDto.Login);
-    // }
-    //
-    // [Fact]
-    // public async Task Update_EditorNotExist_ReturnsNotFound()
-    // {
-    //     EditorRequestDto requestDto = new EditorRequestDto
-    //     {
-    //         Id = -1, Login = "test_editor_update_login", Password = "qwerty12", FirstName = "test_update_firstname",
-    //         LastName = "test_update_lastname"
-    //     };
-    //
-    //     var response = await _client.PutAsJsonAsync(BaseUrl, requestDto);
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status404NotFound);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
-    //
-    //     responseDto!.ErrorCode.Should().Be(40402);
-    //     responseDto.ErrorMessage.Should().NotBeNull();
-    // }
-    //
-    // [Fact]
-    // public async Task Update_ValidData_ReturnsOkWithUpdatedEditor()
-    // {
-    //     EditorRequestDto createDto = new EditorRequestDto
-    //     {
-    //         Login = "test_editor_create_login", Password = "qwerty12", FirstName = "test_create_firstname",
-    //         LastName = "test_create_lastname"
-    //     };
-    //
-    //     EditorRequestDto updateDto = new EditorRequestDto
-    //     {
-    //         Login = "test_editor_update_login", Password = "qwerty12", FirstName = "test_update_firstname",
-    //         LastName = "test_update_lastname"
-    //     };
-    //
-    //     var postResponse = await _client.PostAsJsonAsync(BaseUrl, createDto);
-    //     var createdEditor = await postResponse.Content.ReadFromJsonAsync<EditorResponseDto>();
-    //     updateDto.Id = createdEditor!.Id;
-    //
-    //     var response = await _client.PutAsJsonAsync(BaseUrl, updateDto);
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status200OK);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<EditorResponseDto>();
-    //     response.Should().NotBeNull();
-    //     responseDto!.Id.Should().BePositive();
-    //     responseDto.FirstName.Should().Be(updateDto.FirstName);
-    //     responseDto.LastName.Should().Be(updateDto.LastName);
-    //     responseDto.Login.Should().Be(updateDto.Login);
-    // }
-    //
-    // [Fact]
-    // public async Task Update_InvalidData_ReturnsBadRequest()
-    // {
-    //     EditorRequestDto createDto = new EditorRequestDto
-    //     {
-    //         Login = "test_editor_create_login", Password = "qwerty12", FirstName = "test_create_firstname",
-    //         LastName = "test_create_lastname"
-    //     };
-    //
-    //     EditorRequestDto updateDto = new EditorRequestDto
-    //     {
-    //         Login = "test_editor_update_login", Password = "", FirstName = "test_update_firstname",
-    //         LastName = "test_update_lastname"
-    //     };
-    //
-    //     var postResponse = await _client.PostAsJsonAsync(BaseUrl, createDto);
-    //     var createdEditor = await postResponse.Content.ReadFromJsonAsync<EditorResponseDto>();
-    //     updateDto.Id = createdEditor!.Id;
-    //
-    //     var response = await _client.PutAsJsonAsync(BaseUrl, updateDto);
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status400BadRequest);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
-    //
-    //     responseDto!.ErrorCode.Should().Be(40002);
-    //     responseDto.ErrorMessage.Should().NotBeNull();
-    // }
-    //
-    // [Fact]
-    // public async Task Delete_EditorNotExist_ReturnsNotFound()
-    // {
-    //     var response = await _client.DeleteAsync(BaseUrl + "/-1");
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status404NotFound);
-    //
-    //     var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
-    //
-    //     responseDto!.ErrorCode.Should().Be(40403);
-    //     responseDto.ErrorMessage.Should().NotBeNull();
-    // }
-    //
-    // [Fact]
-    // public async Task Delete_EditorExist_ReturnsNoContent()
-    // {
-    //     EditorRequestDto requestDto = new EditorRequestDto
-    //     {
-    //         Login = "test_editor_delete_login", Password = "qwerty12", FirstName = "test_delete_firstname",
-    //         LastName = "test_delete_lastname"
-    //     };
-    //
-    //     var postResponse = await _client.PostAsJsonAsync(BaseUrl, requestDto);
-    //     var createdEditor = await postResponse.Content.ReadFromJsonAsync<EditorResponseDto>();
-    //
-    //     var response = await _client.DeleteAsync(BaseUrl + $"/{createdEditor!.Id}");
-    //
-    //     response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status204NoContent);
-    // }
+    private readonly AppDbContext _dbContext =
+        factory.Services.CreateScope().ServiceProvider.GetRequiredService<AppDbContext>();
+
+    private readonly Func<Task> _resetDatabase = factory.ResetDatabase;
+    private readonly HttpClient _client = factory.HttpClient;
+    private const string BasePath = "editors";
+
+    private readonly Faker<EditorRequestDto> _editorRequestGenerator = EditorGenerator.CreateEditorRequestDtoFaker();
+    private readonly Faker<Editor> _editorGenerator = EditorGenerator.CreateEditorFaker();
+
+    [Fact]
+    public async Task Create_ValidData_ReturnsCreatedWithCreatedEditor()
+    {
+        EditorRequestDto requestDto = _editorRequestGenerator.Generate();
+
+
+        var response = await _client.PostAsJsonAsync(BasePath, requestDto);
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status201Created);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<EditorResponseDto>();
+        responseDto!.Id.Should().BePositive();
+        responseDto.Should().NotBeNull().Should().BeEquivalentTo(requestDto,
+            options => options.ExcludingMissingMembers()
+                .Excluding(e => e.Id)
+                .Excluding(e => e.Password));
+    }
+    
+    [Fact]
+    public async Task Create_NonUniqueValue_ReturnsForbiddenStatus()
+    {
+        Editor createEditor = _editorGenerator.Generate();
+        _dbContext.Add(createEditor);
+        await _dbContext.SaveChangesAsync();
+        EditorRequestDto requestDto = _editorRequestGenerator.Clone()
+            .RuleFor(e => e.Login, createEditor.Login).Generate();
+
+        
+        var response = await _client.PostAsJsonAsync(BasePath, requestDto);
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status403Forbidden);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40301);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Create_InvalidData_ReturnsBadRequest()
+    {
+        EditorRequestDto requestDto = _editorRequestGenerator.Clone().RuleFor(e => e.Password, "").Generate();
+
+
+        var response = await _client.PostAsJsonAsync(BasePath, requestDto);
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status400BadRequest);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40001);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetAll_ValidState_ReturnsOkWithListOfEditors()
+    {
+        var response = await _client.GetAsync(BasePath);
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status200OK);
+        var responseDto = await response.Content.ReadFromJsonAsync<List<EditorResponseDto>>();
+        responseDto.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetById_EditorNotExist_ReturnsNotFound()
+    {
+        var response = await _client.GetAsync($"{BasePath}/-1");
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status404NotFound);
+
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+
+        responseDto!.ErrorCode.Should().Be(40401);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetById_EditorExist_ReturnsExistingResult()
+    {
+        Editor editor = _editorGenerator.Generate();
+        _dbContext.Add(editor);
+        await _dbContext.SaveChangesAsync();
+
+
+        var response = await _client.GetAsync($"{BasePath}/{editor.Id}");
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status200OK);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<EditorResponseDto>();
+        responseDto.Should().NotBeNull().Should().BeEquivalentTo(editor,
+            options => options.ExcludingMissingMembers()
+                .Excluding(e => e.Password));
+    }
+
+    [Fact]
+    public async Task Update_EditorNotExist_ReturnsNotFound()
+    {
+        EditorRequestDto requestDto = _editorRequestGenerator.Clone()
+            .RuleFor(e => e.Id, -1).Generate();
+
+        
+        var response = await _client.PutAsJsonAsync(BasePath, requestDto);
+
+        
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status404NotFound);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40402);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Update_ValidData_ReturnsOkWithUpdatedEditor()
+    {
+        Editor createEditor = _editorGenerator.Generate();
+        _dbContext.Add(createEditor);
+        await _dbContext.SaveChangesAsync();
+
+        EditorRequestDto updateDto = _editorRequestGenerator.Clone()
+            .RuleFor(e => e.Id, createEditor.Id).Generate();
+        
+
+        var response = await _client.PutAsJsonAsync(BasePath, updateDto);
+
+        
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status200OK);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<EditorResponseDto>();
+        responseDto.Should().NotBeNull().Should().BeEquivalentTo(updateDto,
+            options => options.ExcludingMissingMembers()
+                .Excluding(e => e.Password));
+    }
+    
+    [Fact]
+    public async Task Update_NonUniqueValue_ReturnsForbiddenStatus()
+    {
+        Editor createEditor = _editorGenerator.Generate();
+        _dbContext.Add(createEditor);
+        await _dbContext.SaveChangesAsync();
+        EditorRequestDto updateDto = _editorRequestGenerator.Clone()
+            .RuleFor(e => e.Login, createEditor.Login).Generate();
+
+        
+        var response = await _client.PutAsJsonAsync(BasePath, updateDto);
+
+
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status403Forbidden);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40302);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Update_InvalidData_ReturnsBadRequest()
+    {
+        Editor createEditor = _editorGenerator.Generate();
+        _dbContext.Add(createEditor);
+        await _dbContext.SaveChangesAsync();
+
+        EditorRequestDto updateDto = _editorRequestGenerator.Clone()
+            .RuleFor(e => e.Id, createEditor.Id)
+            .RuleFor(e => e.Password, "").Generate();
+
+        
+        var response = await _client.PutAsJsonAsync(BasePath, updateDto);
+
+        
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status400BadRequest);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40002);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Delete_EditorNotExist_ReturnsNotFound()
+    {
+        var response = await _client.DeleteAsync($"{BasePath}/-1");
+
+        
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status404NotFound);
+
+        var responseDto = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+        responseDto!.ErrorCode.Should().Be(40403);
+        responseDto.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Delete_EditorExist_ReturnsNoContent()
+    {
+        Editor createEditor = _editorGenerator.Generate();
+        _dbContext.Add(createEditor);
+        await _dbContext.SaveChangesAsync();
+
+        
+        var response = await _client.DeleteAsync($"{BasePath}/{createEditor.Id}");
+
+        
+        response.StatusCode.Should().Be((HttpStatusCode)StatusCodes.Status204NoContent);
+    }
+
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public async Task DisposeAsync() => await _resetDatabase();
 }

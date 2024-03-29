@@ -53,6 +53,7 @@ public class EditorRepository(AppDbContext dbContext) : IEditorRepository<long>
 
         try
         {
+            //TODO maybe I should add some check for the presence of a updated value.
             entity.Id = id;
             dbContext.Editors.Update(entity);
             if (await dbContext.SaveChangesAsync() == 0)

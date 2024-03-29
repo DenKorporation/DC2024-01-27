@@ -6,7 +6,7 @@ namespace REST.Data.Configuration;
 
 public class IssueConfiguration : IEntityTypeConfiguration<Issue>
 {
-    //TODO Properly handle with created and modified fields
+    //TODO Properly handle created and modified fields
     public void Configure(EntityTypeBuilder<Issue> builder)
     {
         builder.ToTable("tblIssue").HasKey(i => i.Id);
