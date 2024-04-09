@@ -20,7 +20,7 @@ namespace REST.Discussion.UnitTests.Services.Implementations;
 public class NoteServiceTest
 {
     private readonly Mock<IMapper> _mapperMock = new();
-    private readonly Mock<INoteRepository<long>> _repositoryMock = new();
+    private readonly Mock<INoteRepository<NoteKey>> _repositoryMock = new();
     private readonly Mock<AbstractValidator<Note>> _validatorMock = new();
     private readonly INoteService _noteService;
 
@@ -87,13 +87,13 @@ public class NoteServiceTest
     [Fact]
     public async Task GetByIdAsync_NoteNotExist_ThrowsResourceNotFoundException()
     {
-        _repositoryMock.Setup(repository => repository.GetByIdAsync(It.IsAny<long>()))
+        _repositoryMock.Setup(repository => repository.GetByIdAsync(It.IsAny<NoteKey>()))
             .ThrowsAsync(new ResourceNotFoundException());
 
-        Func<Task> actual = async () => await _noteService.GetByIdAsync(-1);
+        Func<Task> actual = async () => await _noteService.GetByIdAsync(new NoteKey{Id = -1});
 
         await actual.Should().ThrowExactlyAsync<ResourceNotFoundException>();
-        _repositoryMock.Verify(repository => repository.GetByIdAsync(It.IsAny<long>()), Times.Once);
+        _repositoryMock.Verify(repository => repository.GetByIdAsync(It.IsAny<NoteKey>()), Times.Once);
     }
 
     [Fact]
@@ -101,14 +101,14 @@ public class NoteServiceTest
     {
         Note note = new Note();
         NoteResponseDto noteResponseDto = new();
-        _repositoryMock.Setup(repository => repository.GetByIdAsync(It.IsAny<long>()))
+        _repositoryMock.Setup(repository => repository.GetByIdAsync(It.IsAny<NoteKey>()))
             .ReturnsAsync(note);
         _mapperMock.Setup(mapper => mapper.Map<NoteResponseDto>(It.IsAny<Note>())).Returns(noteResponseDto);
 
-        var result = await _noteService.GetByIdAsync(1);
+        var result = await _noteService.GetByIdAsync(new NoteKey{Id = 1});
 
         result.Should().Be(noteResponseDto);
-        _repositoryMock.Verify(repository => repository.GetByIdAsync(It.IsAny<long>()), Times.Once);
+        _repositoryMock.Verify(repository => repository.GetByIdAsync(It.IsAny<NoteKey>()), Times.Once);
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public class NoteServiceTest
     [Fact]
     public async Task UpdateAsync_NullArgument_ThrowsArgumentNullException()
     {
-        Func<Task> actual = async () => await _noteService.UpdateAsync(1, null!);
+        Func<Task> actual = async () => await _noteService.UpdateAsync(null!);
 
         await actual.Should().ThrowExactlyAsync<ArgumentNullException>();
     }
@@ -146,7 +146,7 @@ public class NoteServiceTest
                 validator.ValidateAsync(It.IsAny<ValidationContext<Note>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(validationResult);
 
-        Func<Task> actual = async () => await _noteService.UpdateAsync(1, noteRequestDto);
+        Func<Task> actual = async () => await _noteService.UpdateAsync(noteRequestDto);
 
         await actual.Should().ThrowExactlyAsync<ValidationException>();
         _mapperMock.Verify(mapper => mapper.Map<Note>(It.IsAny<NoteRequestDto>()), Times.Once);
@@ -167,10 +167,10 @@ public class NoteServiceTest
         _validatorMock.Setup(validator =>
                 validator.ValidateAsync(It.IsAny<ValidationContext<Note>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(validationResult);
-        _repositoryMock.Setup(repository => repository.UpdateAsync(It.IsAny<long>(), It.IsAny<Note>()))
+        _repositoryMock.Setup(repository => repository.UpdateAsync(It.IsAny<NoteKey>(), It.IsAny<Note>()))
             .ReturnsAsync(note);
 
-        var result = await _noteService.UpdateAsync(1, noteRequestDto);
+        var result = await _noteService.UpdateAsync(noteRequestDto);
 
         result.Should().Be(noteResponseDto);
         _mapperMock.Verify(mapper => mapper.Map<Note>(It.IsAny<NoteRequestDto>()), Times.Once);
@@ -178,29 +178,29 @@ public class NoteServiceTest
         _validatorMock.Verify(
             validator => validator.ValidateAsync(It.IsAny<ValidationContext<Note>>(), It.IsAny<CancellationToken>()),
             Times.Once);
-        _repositoryMock.Verify(repository => repository.UpdateAsync(It.IsAny<long>(), It.IsAny<Note>()), Times.Once);
+        _repositoryMock.Verify(repository => repository.UpdateAsync(It.IsAny<NoteKey>(), It.IsAny<Note>()), Times.Once);
     }
 
     [Fact]
     public async Task Delete_NoteNotExist_ThrowsResourceNotFoundException()
     {
-        _repositoryMock.Setup(repository => repository.DeleteAsync(It.IsAny<long>()))
+        _repositoryMock.Setup(repository => repository.DeleteAsync(It.IsAny<NoteKey>()))
             .ThrowsAsync(new ResourceNotFoundException());
 
-        Func<Task> actual = async () => await _noteService.DeleteAsync(-1);
+        Func<Task> actual = async () => await _noteService.DeleteAsync(new NoteKey{Id = -1});
 
         await actual.Should().ThrowExactlyAsync<ResourceNotFoundException>();
-        _repositoryMock.Verify(repository => repository.DeleteAsync(It.IsAny<long>()), Times.Once);
+        _repositoryMock.Verify(repository => repository.DeleteAsync(It.IsAny<NoteKey>()), Times.Once);
     }
 
     [Fact]
     public async Task Delete_NoteExist_NoteNoLongerExist()
     {
-        _repositoryMock.Setup(repository => repository.DeleteAsync(It.IsAny<long>()));
+        _repositoryMock.Setup(repository => repository.DeleteAsync(It.IsAny<NoteKey>()));
 
-        Func<Task> actual = async () => await _noteService.DeleteAsync(1);
+        Func<Task> actual = async () => await _noteService.DeleteAsync(new NoteKey{Id = 1});
 
         await actual.Should().NotThrowAsync();
-        _repositoryMock.Verify(repository => repository.DeleteAsync(It.IsAny<long>()), Times.Once);
+        _repositoryMock.Verify(repository => repository.DeleteAsync(It.IsAny<NoteKey>()), Times.Once);
     }
 }

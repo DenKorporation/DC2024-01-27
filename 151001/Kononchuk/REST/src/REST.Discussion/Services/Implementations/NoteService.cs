@@ -11,14 +11,15 @@ namespace REST.Discussion.Services.Implementations;
 
 public class NoteService(
     IMapper mapper,
-    INoteRepository<long> noteRepository,
+    INoteRepository<NoteKey> noteRepository,
     AbstractValidator<Note> validator) : INoteService
 {
     public async Task<NoteResponseDto> CreateAsync(NoteRequestDto dto)
     {
         if (dto == null) throw new ArgumentNullException(nameof(dto));
         var note = mapper.Map<Note>(dto);
-
+        note.Id = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        
         var validationResult = await validator.ValidateAsync(note);
 
         if (!validationResult.IsValid)
@@ -32,7 +33,7 @@ public class NoteService(
     }
 
 
-    public async Task<NoteResponseDto> GetByIdAsync(long id)
+    public async Task<NoteResponseDto> GetByIdAsync(NoteKey id)
     {
         var foundNote = await noteRepository.GetByIdAsync(id);
 
@@ -44,7 +45,7 @@ public class NoteService(
         return (await noteRepository.GetAllAsync()).Select(mapper.Map<NoteResponseDto>).ToList();
     }
 
-    public async Task<NoteResponseDto> UpdateAsync(long id, NoteRequestDto dto)
+    public async Task<NoteResponseDto> UpdateAsync(NoteRequestDto dto)
     {
         if (dto == null) throw new ArgumentNullException(nameof(dto));
         var note = mapper.Map<Note>(dto);
@@ -56,12 +57,13 @@ public class NoteService(
             throw new Exceptions_ValidationException("Note data has not been validated", 40002);
         }
 
-        var updatedNote = await noteRepository.UpdateAsync(id, note);
+        NoteKey key = mapper.Map<NoteKey>(note);
+        var updatedNote = await noteRepository.UpdateAsync(key, note);
 
         return mapper.Map<NoteResponseDto>(updatedNote);
     }
 
-    public async Task DeleteAsync(long id)
+    public async Task DeleteAsync(NoteKey id)
     {
         await noteRepository.DeleteAsync(id);
     }

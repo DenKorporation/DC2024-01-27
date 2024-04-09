@@ -1,6 +1,6 @@
 using Asp.Versioning;
 using FluentValidation;
-using REST.Discussion;
+using REST.Discussion.Data;
 using REST.Discussion.Exceptions.Handler;
 using REST.Discussion.Models.Entities;
 using REST.Discussion.Repositories.Implementations;
@@ -14,6 +14,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+builder.Services.AddScoped<CassandraContext>(_ =>
+    new CassandraContext(builder.Configuration["Cassandra:connectionString"],
+        builder.Configuration["Cassandra:keyspace"]));
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
@@ -41,7 +45,7 @@ builder.Services.AddTransient<AbstractValidator<Note>, NoteValidator>();
 
 // Repository Registration
 
-// builder.Services.AddScoped<INoteRepository<long>, NoteRepository>();
+builder.Services.AddScoped<INoteRepository<NoteKey>, NoteRepository>();
 
 var app = builder.Build();
 

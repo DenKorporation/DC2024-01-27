@@ -1,99 +1,92 @@
-﻿
-
+﻿using Cassandra.Mapping;
+using REST.Discussion.Data;
 using REST.Discussion.Exceptions;
 using REST.Discussion.Models.Entities;
 using REST.Discussion.Repositories.Interfaces;
 
 namespace REST.Discussion.Repositories.Implementations;
 
-// public class NoteRepository : INoteRepository<long>
-// {
-    // /// <inheritdoc/>
-    // /// <exception cref="AssociationException">Occurs if <see cref="Issue"/> with given id not exist</exception>
-    // public async Task<Note> AddAsync(Note entity)
-    // {
-    //     ArgumentNullException.ThrowIfNull(entity);
-    //
-    //     try
-    //     {
-    //         await dbContext.Notes.AddAsync(entity);
-    //         await dbContext.SaveChangesAsync();
-    //     }
-    //     catch (ReferenceConstraintException)
-    //     {
-    //         throw new AssociationException($"Issue with Id = {entity.IssueId} not exist", 40311);
-    //     }
-    //
-    //     return entity;
-    // }
-    //
-    // public async Task<bool> ExistAsync(long id)
-    // {
-    //     return await dbContext.Notes.FirstOrDefaultAsync(note => note.Id == id) is not null;
-    // }
-    //
-    // public async Task<Note> GetByIdAsync(long id)
-    // {
-    //     Note? result = await dbContext.Notes.FirstOrDefaultAsync(note => note.Id == id);
-    //     if (result is null)
-    //     {
-    //         throw new ResourceNotFoundException(code: 40401);
-    //     }
-    //
-    //     return result;
-    // }
-    //
-    // public async Task<IEnumerable<Note>> GetAllAsync()
-    // {
-    //     return await dbContext.Notes.ToListAsync();
-    // }
-    //
-    // /// <inheritdoc/>
-    // /// <exception cref="AssociationException">Occurs if <see cref="Issue"/> with given id not exist</exception>
-    // public async Task<Note> UpdateAsync(long id, Note entity)
-    // {
-    //     ArgumentNullException.ThrowIfNull(entity);
-    //
-    //     try
-    //     {
-    //         entity.Id = id;
-    //         dbContext.Notes.Update(entity);
-    //         if (await dbContext.SaveChangesAsync() == 0)
-    //         {
-    //             throw new ResourceNotFoundException(code: 40402);
-    //         }
-    //     }
-    //     catch (ReferenceConstraintException)
-    //     {
-    //         throw new AssociationException($"Issue with Id = {entity.IssueId} not exist", 40312);
-    //     }
-    //     catch (DbUpdateConcurrencyException)
-    //     {
-    //         throw new ResourceNotFoundException(code: 40402);
-    //     }
-    //
-    //     return entity;
-    // }
-    //
-    // public async Task DeleteAsync(long id)
-    // {
-    //     Note? note = await dbContext.Notes.FirstOrDefaultAsync(n => n.Id == id);
-    //     if (note is null)
-    //     {
-    //         throw new ResourceNotFoundException(code: 40403);
-    //     }
-    //
-    //     try
-    //     {
-    //         dbContext.Notes.Remove(note);
-    //         if (await dbContext.SaveChangesAsync() == 0)
-    //         {
-    //             throw new ResourceNotFoundException(code: 40403);
-    //         }
-    //     }
-    //     catch (DbUpdateConcurrencyException)
-    //     {
-    //         throw new ResourceNotFoundException(code: 40403);
-    //     }
-    // }
-// }
+public class NoteRepository(CassandraContext context) : INoteRepository<NoteKey>
+{
+    private readonly Mapper _mapper = new(context.Session);
+
+    public async Task<Note> AddAsync(Note entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+
+        await _mapper.InsertAsync(entity);
+
+        return entity;
+    }
+
+    public async Task<Note> GetByIdAsync(NoteKey id)
+    {
+        Note? result = (await GetAllByKeyAsync(id)).FirstOrDefault();
+
+        if (result is null)
+        {
+            throw new ResourceNotFoundException(code: 40401);
+        }
+
+        return result;
+    }
+
+    public async Task<IEnumerable<Note>> GetAllAsync()
+    {
+        return await _mapper.FetchAsync<Note>();
+    }
+
+    public async Task<Note> UpdateAsync(NoteKey id, Note entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+
+        Note? result = (await GetAllByKeyAsync(id)).FirstOrDefault();
+
+        if (result is null)
+        {
+            throw new ResourceNotFoundException(code: 40402);
+        }
+
+        result.Content = entity.Content;
+        await _mapper.UpdateAsync(result);
+
+        return result;
+    }
+
+    public async Task DeleteAsync(NoteKey id)
+    {
+        Note? result = (await GetAllByKeyAsync(id)).FirstOrDefault();
+
+        if (result is null)
+        {
+            throw new ResourceNotFoundException(code: 40403);
+        }
+
+        await _mapper.DeleteAsync(result);
+    }
+
+    private async Task<IEnumerable<Note>> GetAllByKeyAsync(NoteKey key)
+    {
+        List<string> query = [];
+        List<object> args = [];
+    
+        if (key.Country is not null)
+        {
+            query.Add("country = ?");
+            args.Add(key.Country);
+        }
+        if (key.IssueId is not null)
+        {
+            query.Add("issueId = ?");
+            args.Add(key.IssueId);
+        }
+        if (key.Id is not null)
+        {
+            query.Add("id = ?");
+            args.Add(key.Id);
+        }
+
+        return await _mapper.FetchAsync<Note>("WHERE " + string.Join(" AND ", query) + " ALLOW FILTERING",
+            args.ToArray());
+    }
+}

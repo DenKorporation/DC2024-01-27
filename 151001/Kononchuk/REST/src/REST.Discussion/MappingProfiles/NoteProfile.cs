@@ -5,11 +5,15 @@ using REST.Discussion.Models.Entities;
 
 namespace REST.Discussion.MappingProfiles;
 
-public class NoteProfile: Profile
+public class NoteProfile : Profile
 {
     public NoteProfile()
     {
         CreateMap<Note, NoteResponseDto>();
         CreateMap<NoteRequestDto, Note>();
+        // CreateMap<NoteRequestDto, Note>().ForMember(dest => dest.IssueId,
+        //     opt => opt.MapFrom((dto, note) =>
+        //         string.IsNullOrEmpty(dto.IssueId) ? note.IssueId = null : note.IssueId = Convert.ToInt64(dto.IssueId)));
+        CreateMap<Note, NoteKey>();
     }
 }

@@ -21,10 +21,6 @@ public class GlobalExceptionHandler(IMapper mapper) : IExceptionHandler
                 code = 400;
                 errorMessage = mapper.Map<ErrorResponseDto>(validationException);
                 break;
-            case UniqueConstraintException uniqueConstraintException:
-                code = 403;
-                errorMessage = mapper.Map<ErrorResponseDto>(uniqueConstraintException);
-                break;
             case AssociationException associationException:
                 code = 403;
                 errorMessage = mapper.Map<ErrorResponseDto>(associationException);

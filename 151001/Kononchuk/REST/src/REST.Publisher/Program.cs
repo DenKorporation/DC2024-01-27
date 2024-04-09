@@ -10,12 +10,16 @@ using REST.Publisher.Services.Implementations;
 using REST.Publisher.Services.Interfaces;
 using REST.Publisher.Utilities.ExceptionHandlers;
 using REST.Publisher.Validators;
+using RestSharp;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+builder.Services.AddTransient<IRestClient>(_ =>
+    new RestClient(builder.Configuration["ServiceUrls:Discussion"] ?? throw new InvalidOperationException()));
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")).UseExceptionProcessor());

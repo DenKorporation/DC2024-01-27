@@ -7,12 +7,8 @@ public interface IRepository<TKey, TEntity> where TEntity : class
     /// <summary>
     /// Creates a new entity
     /// </summary>
-    /// <exception cref="UniqueConstraintException">Occurs if the uniqueness constraint is not met</exception>
     /// <exception cref="ArgumentNullException">entity is null</exception>>
     public Task<TEntity> AddAsync(TEntity entity);
-
-    // Read
-    public Task<bool> ExistAsync(TKey id);
     
     /// <summary>
     /// Returns an entity by given id
@@ -26,7 +22,6 @@ public interface IRepository<TKey, TEntity> where TEntity : class
     /// Updates an entity with the given id and the given values
     /// </summary>
     /// <exception cref="ResourceNotFoundException">Occurs if an entity with the specified ID does not exist</exception>
-    /// <exception cref="UniqueConstraintException">Occurs if the uniqueness constraint is not met</exception>
     /// <exception cref="ArgumentNullException">entity is null</exception>>
     public Task<TEntity> UpdateAsync(TKey id, TEntity entity);
 
