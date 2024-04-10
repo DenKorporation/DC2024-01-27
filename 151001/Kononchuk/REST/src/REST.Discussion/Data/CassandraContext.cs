@@ -16,12 +16,13 @@ public class CassandraContext
         MappingConfiguration.Global.Define<NoteMappings>();   
     }
     
-    public CassandraContext(string? connectionString, string? keyspace)
+    public CassandraContext(string? host, string? keyspace, int port = 9042)
     {
-        ArgumentNullException.ThrowIfNull(connectionString);
+        ArgumentNullException.ThrowIfNull(host);
         ArgumentNullException.ThrowIfNull(keyspace);
         var cluster = Cluster.Builder()
-            .AddContactPoint(connectionString)
+            .AddContactPoint(host)
+            .WithPort(port)
             .Build();
 
         _session = cluster.Connect(keyspace);
