@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using REST.Discussion.Models.Entities;
 
-namespace REST.Discussion.Validators;
+namespace REST.Discussion.Models.Validators;
 
 public class NoteValidator : AbstractValidator<Note>
 {

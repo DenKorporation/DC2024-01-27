@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
-using REST.Discussion.Exceptions;
 using REST.Discussion.Models.DTOs.Response;
+using REST.Discussion.Utilities.Exceptions;
 
-namespace REST.Discussion.MappingProfiles;
+namespace REST.Discussion.Utilities.MappingProfiles;
 
 public class ErrorResponseProfile : Profile
 {

@@ -3,7 +3,7 @@ using REST.Discussion.Models.DTOs.Request;
 using REST.Discussion.Models.DTOs.Response;
 using REST.Discussion.Models.Entities;
 
-namespace REST.Discussion.MappingProfiles;
+namespace REST.Discussion.Utilities.MappingProfiles;
 
 public class NoteProfile : Profile
 {

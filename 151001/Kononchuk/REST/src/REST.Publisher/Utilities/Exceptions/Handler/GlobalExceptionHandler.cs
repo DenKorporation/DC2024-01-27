@@ -1,9 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Diagnostics;
 using REST.Publisher.Models.DTOs.Response;
-using REST.Publisher.Utilities.Exceptions;
 
-namespace REST.Publisher.Utilities.ExceptionHandlers;
+namespace REST.Publisher.Utilities.Exceptions.Handler;
 
 public class GlobalExceptionHandler(IMapper mapper) : IExceptionHandler
 {
@@ -29,6 +28,14 @@ public class GlobalExceptionHandler(IMapper mapper) : IExceptionHandler
             case AssociationException associationException:
                 code = 403;
                 errorMessage = mapper.Map<ErrorResponseDto>(associationException);
+                break;
+            case OperationCanceledException:
+                code = 504;
+                errorMessage = new ErrorResponseDto { ErrorCode = 504, ErrorMessage = "Request timed out" };
+                break;
+            case KafkaException kafkaException:
+                code = kafkaException.Code;
+                errorMessage = kafkaException.ErrorResponse;
                 break;
             default:
                 return false;

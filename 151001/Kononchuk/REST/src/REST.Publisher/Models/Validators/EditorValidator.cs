@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using REST.Publisher.Models.Entities;
 
-namespace REST.Publisher.Validators;
+namespace REST.Publisher.Models.Validators;
 
 public class EditorValidator: AbstractValidator<Editor>
 {

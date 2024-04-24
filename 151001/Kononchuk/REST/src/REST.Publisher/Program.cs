@@ -1,16 +1,16 @@
 using Asp.Versioning;
+using Confluent.Kafka;
 using EntityFramework.Exceptions.PostgreSQL;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using REST.Publisher.Data;
 using REST.Publisher.Models.Entities;
+using REST.Publisher.Models.Validators;
 using REST.Publisher.Repositories.Implementations.EFCore;
 using REST.Publisher.Repositories.Interfaces;
 using REST.Publisher.Services.Implementations;
 using REST.Publisher.Services.Interfaces;
-using REST.Publisher.Utilities.ExceptionHandlers;
-using REST.Publisher.Validators;
-using RestSharp;
+using REST.Publisher.Utilities.Exceptions.Handler;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,8 +18,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
-builder.Services.AddTransient<IRestClient>(_ =>
-    new RestClient(builder.Configuration["ServiceUrls:Discussion"] ?? throw new InvalidOperationException()));
+builder.Services.Configure<ProducerConfig>(builder.Configuration.GetRequiredSection("Kafka:Producer"));
+builder.Services.Configure<ConsumerConfig>(builder.Configuration.GetRequiredSection("Kafka:Consumer"));
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")).UseExceptionProcessor());
@@ -45,6 +45,7 @@ builder.Services.AddApiVersioning(options =>
 builder.Services.AddTransient<IEditorService, EditorService>();
 builder.Services.AddTransient<IIssueService, IssueService>();
 builder.Services.AddTransient<ITagService, TagService>();
+builder.Services.AddTransient<INoteService, NoteService>();
 
 // Validators Registration
 

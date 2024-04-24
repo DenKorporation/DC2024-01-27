@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Diagnostics;
 using REST.Discussion.Models.DTOs.Response;
 
-namespace REST.Discussion.Exceptions.Handler;
+namespace REST.Discussion.Utilities.Exceptions.Handler;
 
 public class GlobalExceptionHandler(IMapper mapper) : IExceptionHandler
 {
