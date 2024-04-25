@@ -45,7 +45,8 @@ public class ConsumerService(
 
     public override void Dispose()
     {
-        _consumer.Close();
+        messageProcessor.Dispose();
+        _consumer.Dispose();
         base.Dispose();
     }
 }

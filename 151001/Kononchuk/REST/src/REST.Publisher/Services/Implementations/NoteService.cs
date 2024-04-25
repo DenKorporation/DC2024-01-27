@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Confluent.Kafka;
+﻿using Confluent.Kafka;
 using Confluent.Kafka.SyncOverAsync;
 using Microsoft.Extensions.Options;
 using REST.Publisher.Models.DTOs.Request;
@@ -10,29 +9,31 @@ using KafkaException = REST.Publisher.Utilities.Exceptions.KafkaException;
 
 namespace REST.Publisher.Services.Implementations;
 
-public class NoteService(
-    IOptions<ProducerConfig> producerConfig,
-    IOptions<ConsumerConfig> consumerConfig,
-    IConfiguration configuration,
-    ILogger<NoteService> logger) : INoteService
+public class NoteService : INoteService, IDisposable
 {
-    private readonly string _producerTopic = configuration["Kafka:Producer:Topic"] ??
-                                             throw new InvalidOperationException(
-                                                 "configuration[\"Kafka:Producer:Topic\"] doesn't exist");
-
-    private readonly string _consumerTopic = configuration["Kafka:Consumer:Topic"] ??
-                                             throw new InvalidOperationException(
-                                                 "configuration[\"Kafka:Consumer:Topic\"] doesn't exist");
+    private readonly string _producerTopic;
 
     //Key is GUID
-    private readonly IProducer<string, KafkaRequestDto> _producer =
-        new ProducerBuilder<string, KafkaRequestDto>(producerConfig.Value)
+    private readonly IProducer<string, KafkaRequestDto> _producer;
+    private readonly IConsumer<string, KafkaResponseDto> _consumer;
+
+    public NoteService(IOptions<ProducerConfig> producerConfig,
+        IOptions<ConsumerConfig> consumerConfig,
+        IConfiguration configuration)
+    {
+        _producerTopic = configuration["Kafka:Producer:Topic"] ??
+                         throw new InvalidOperationException(
+                             "configuration[\"Kafka:Producer:Topic\"] doesn't exist");
+        var consumerTopic = configuration["Kafka:Consumer:Topic"] ??
+                            throw new InvalidOperationException(
+                                "configuration[\"Kafka:Consumer:Topic\"] doesn't exist");
+
+        _producer = new ProducerBuilder<string, KafkaRequestDto>(producerConfig.Value)
             .SetValueSerializer(new JsonSerializer<KafkaRequestDto>()).Build();
 
-    private IConsumer<string, KafkaResponseDto> GetNewConsumer()
-    {
-        return new ConsumerBuilder<string, KafkaResponseDto>(consumerConfig.Value)
+        _consumer = new ConsumerBuilder<string, KafkaResponseDto>(consumerConfig.Value)
             .SetValueDeserializer(new JsonDeserializer<KafkaResponseDto>().AsSyncOverAsync()).Build();
+        _consumer.Subscribe(consumerTopic);
     }
 
     public async Task<NoteResponseDto> CreateAsync(NoteRequestDto dto)
@@ -59,7 +60,7 @@ public class NoteService(
         var guid = Guid.NewGuid();
         await _producer.ProduceAsync(_producerTopic,
             new Message<string, KafkaRequestDto>
-                { Key = guid.ToString(), Value = new KafkaRequestDto { Method = HttpMethod.Get, Id = id} });
+                { Key = guid.ToString(), Value = new KafkaRequestDto { Method = HttpMethod.Get, Id = id } });
 
         CancellationToken cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token;
 
@@ -78,7 +79,7 @@ public class NoteService(
         var guid = Guid.NewGuid();
         await _producer.ProduceAsync(_producerTopic,
             new Message<string, KafkaRequestDto>
-                { Key = guid.ToString(), Value = new KafkaRequestDto { Method = HttpMethod.Get} });
+                { Key = guid.ToString(), Value = new KafkaRequestDto { Method = HttpMethod.Get } });
 
         CancellationToken cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token;
 
@@ -97,7 +98,9 @@ public class NoteService(
         var guid = Guid.NewGuid();
         await _producer.ProduceAsync(_producerTopic,
             new Message<string, KafkaRequestDto>
-                { Key = guid.ToString(), Value = new KafkaRequestDto { Method = HttpMethod.Put, Id = id, Request = dto} });
+            {
+                Key = guid.ToString(), Value = new KafkaRequestDto { Method = HttpMethod.Put, Id = id, Request = dto }
+            });
 
         CancellationToken cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token;
 
@@ -116,7 +119,7 @@ public class NoteService(
         var guid = Guid.NewGuid();
         await _producer.ProduceAsync(_producerTopic,
             new Message<string, KafkaRequestDto>
-                { Key = guid.ToString(), Value = new KafkaRequestDto { Method = HttpMethod.Delete, Id = id} });
+                { Key = guid.ToString(), Value = new KafkaRequestDto { Method = HttpMethod.Delete, Id = id } });
 
         CancellationToken cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token;
 
@@ -130,27 +133,19 @@ public class NoteService(
 
     private KafkaResponseDto Consume(Guid guid, CancellationToken cancellationToken)
     {
-        IConsumer<string, KafkaResponseDto>? consumer = null;
-        var stopwatch = new Stopwatch();
-        try
+        Message<string, KafkaResponseDto> message;
+
+        do
         {
-            consumer = GetNewConsumer();
-            consumer.Subscribe(_consumerTopic);
-            Message<string, KafkaResponseDto> message;
-            
-            do
-            {
-                stopwatch.Restart();
-                message = consumer.Consume(cancellationToken).Message;
-                stopwatch.Stop();
-                logger.LogInformation($"Duration: {stopwatch.ElapsedMilliseconds} ms");
-            } while (message.Key != guid.ToString());
-            
-            return message.Value;
-        }
-        finally
-        {
-            consumer?.Close();
-        }
+            message = _consumer.Consume(cancellationToken).Message;
+        } while (message.Key != guid.ToString());
+
+        return message.Value;
+    }
+
+    public void Dispose()
+    {
+        _producer.Dispose();
+        _consumer.Dispose();
     }
 }

@@ -15,7 +15,7 @@ public class MessageProcessor(
     INoteService noteService,
     IMapper mapper,
     IConfiguration configuration,
-    ILogger<MessageProcessor> logger)
+    ILogger<MessageProcessor> logger) : IDisposable
 {
     private readonly string _producerTopic = configuration["Kafka:Producer:Topic"] ??
                                              throw new InvalidOperationException(
@@ -84,5 +84,10 @@ public class MessageProcessor(
         await _producer.ProduceAsync(_producerTopic,
             new Message<string, KafkaResponseDto>
                 { Key = message.Message.Key, Value = responseDto }, cancellationToken);
+    }
+
+    public void Dispose()
+    {
+        _producer.Dispose();
     }
 }

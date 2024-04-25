@@ -45,7 +45,7 @@ builder.Services.AddApiVersioning(options =>
 builder.Services.AddTransient<IEditorService, EditorService>();
 builder.Services.AddTransient<IIssueService, IssueService>();
 builder.Services.AddTransient<ITagService, TagService>();
-builder.Services.AddTransient<INoteService, NoteService>();
+builder.Services.AddSingleton<INoteService, NoteService>();
 
 // Validators Registration
 

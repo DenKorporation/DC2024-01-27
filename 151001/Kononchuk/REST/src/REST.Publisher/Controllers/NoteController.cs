@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using REST.Publisher.Models.DTOs.Request;
 using REST.Publisher.Models.DTOs.Response;
 using REST.Publisher.Services.Interfaces;
-using RestSharp;
 
 namespace REST.Publisher.Controllers;
 
