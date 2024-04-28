@@ -1,6 +1,7 @@
 ﻿using Confluent.Kafka;
 using Confluent.Kafka.SyncOverAsync;
 using Microsoft.Extensions.Options;
+using REST.Publisher.Infrastructure.Redis.Interfaces;
 using REST.Publisher.Models.DTOs.Request;
 using REST.Publisher.Models.DTOs.Response;
 using REST.Publisher.Services.Interfaces;
@@ -11,6 +12,9 @@ namespace REST.Publisher.Services.Implementations;
 
 public class NoteService : INoteService, IDisposable
 {
+    private readonly ICacheService _cacheService;
+    private const string Prefix = "note-";
+
     private readonly string _producerTopic;
 
     //Key is GUID
@@ -19,8 +23,10 @@ public class NoteService : INoteService, IDisposable
 
     public NoteService(IOptions<ProducerConfig> producerConfig,
         IOptions<ConsumerConfig> consumerConfig,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ICacheService cacheService)
     {
+        _cacheService = cacheService;
         _producerTopic = configuration["Kafka:Producer:Topic"] ??
                          throw new InvalidOperationException(
                              "configuration[\"Kafka:Producer:Topic\"] doesn't exist");
@@ -43,7 +49,7 @@ public class NoteService : INoteService, IDisposable
             new Message<string, KafkaRequestDto>
                 { Key = guid.ToString(), Value = new KafkaRequestDto { Method = HttpMethod.Post, Request = dto } });
 
-        CancellationToken cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token;
+        CancellationToken cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(1)).Token;
 
         var response = Consume(guid, cancellationToken);
 
@@ -51,27 +57,32 @@ public class NoteService : INoteService, IDisposable
         {
             throw new KafkaException(response.Error.ErrorCode / 100, response.Error);
         }
+
+        await _cacheService.SetAsync(Prefix + response.Response!.Id, response.Response);
 
         return response.Response!;
     }
 
     public async Task<NoteResponseDto> GetByIdAsync(long id)
     {
-        var guid = Guid.NewGuid();
-        await _producer.ProduceAsync(_producerTopic,
-            new Message<string, KafkaRequestDto>
-                { Key = guid.ToString(), Value = new KafkaRequestDto { Method = HttpMethod.Get, Id = id } });
-
-        CancellationToken cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token;
-
-        var response = Consume(guid, cancellationToken);
-
-        if (response.Error is not null)
+        return await _cacheService.GetAsync(Prefix + id, async () =>
         {
-            throw new KafkaException(response.Error.ErrorCode / 100, response.Error);
-        }
+            var guid = Guid.NewGuid();
+            await _producer.ProduceAsync(_producerTopic,
+                new Message<string, KafkaRequestDto>
+                    { Key = guid.ToString(), Value = new KafkaRequestDto { Method = HttpMethod.Get, Id = id } });
 
-        return response.Response!;
+            CancellationToken cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(1)).Token;
+
+            var response = Consume(guid, cancellationToken);
+
+            if (response.Error is not null)
+            {
+                throw new KafkaException(response.Error.ErrorCode / 100, response.Error);
+            }
+
+            return response.Response!;
+        });
     }
 
     public async Task<IEnumerable<NoteResponseDto>> GetAllAsync()
@@ -81,7 +92,7 @@ public class NoteService : INoteService, IDisposable
             new Message<string, KafkaRequestDto>
                 { Key = guid.ToString(), Value = new KafkaRequestDto { Method = HttpMethod.Get } });
 
-        CancellationToken cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token;
+        CancellationToken cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(1)).Token;
 
         var response = Consume(guid, cancellationToken);
 
@@ -89,6 +100,13 @@ public class NoteService : INoteService, IDisposable
         {
             throw new KafkaException(response.Error.ErrorCode / 100, response.Error);
         }
+
+        async void UpdateCache(NoteResponseDto note)
+        {
+            await _cacheService.SetAsync(Prefix + note.Id, note);
+        }   
+
+        response.ResponseList?.ForEach(UpdateCache);
 
         return response.ResponseList!;
     }
@@ -102,7 +120,7 @@ public class NoteService : INoteService, IDisposable
                 Key = guid.ToString(), Value = new KafkaRequestDto { Method = HttpMethod.Put, Id = id, Request = dto }
             });
 
-        CancellationToken cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token;
+        CancellationToken cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(1)).Token;
 
         var response = Consume(guid, cancellationToken);
 
@@ -110,6 +128,8 @@ public class NoteService : INoteService, IDisposable
         {
             throw new KafkaException(response.Error.ErrorCode / 100, response.Error);
         }
+
+        await _cacheService.SetAsync(Prefix + response.Response!.Id, response.Response);
 
         return response.Response!;
     }
@@ -121,7 +141,7 @@ public class NoteService : INoteService, IDisposable
             new Message<string, KafkaRequestDto>
                 { Key = guid.ToString(), Value = new KafkaRequestDto { Method = HttpMethod.Delete, Id = id } });
 
-        CancellationToken cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token;
+        CancellationToken cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(1)).Token;
 
         var response = Consume(guid, cancellationToken);
 
@@ -129,6 +149,8 @@ public class NoteService : INoteService, IDisposable
         {
             throw new KafkaException(response.Error.ErrorCode / 100, response.Error);
         }
+
+        await _cacheService.RemoveAsync(Prefix + id);
     }
 
     private KafkaResponseDto Consume(Guid guid, CancellationToken cancellationToken)

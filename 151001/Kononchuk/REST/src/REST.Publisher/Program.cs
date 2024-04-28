@@ -4,6 +4,8 @@ using EntityFramework.Exceptions.PostgreSQL;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using REST.Publisher.Data;
+using REST.Publisher.Infrastructure.Redis.Implementations;
+using REST.Publisher.Infrastructure.Redis.Interfaces;
 using REST.Publisher.Models.Entities;
 using REST.Publisher.Models.Validators;
 using REST.Publisher.Repositories.Implementations.EFCore;
@@ -20,6 +22,12 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.Configure<ProducerConfig>(builder.Configuration.GetRequiredSection("Kafka:Producer"));
 builder.Services.Configure<ConsumerConfig>(builder.Configuration.GetRequiredSection("Kafka:Consumer"));
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration["Redis:Server"];
+});
+builder.Services.AddSingleton<ICacheService, CacheService>();
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")).UseExceptionProcessor());
